@@ -4,10 +4,10 @@
     <div v-for="field in schema.fields" :key="field.key">
       <div class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">{{ field.label }}</div>
 
-      <!-- Select: 网格布局，紧凑排列 -->
-      <div v-if="field.type === 'select'" class="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+      <!-- Select: auto-fill grid, 文字不截断 -->
+      <div v-if="field.type === 'select'" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
         <button v-for="opt in field.options" :key="opt.value" @click="values[field.key] = opt.value"
-          class="px-2 py-1.5 rounded-lg text-xs font-medium transition-all border min-h-[32px] cursor-pointer truncate"
+          class="px-2 py-1.5 rounded-lg text-xs font-medium transition-all border min-h-[34px] cursor-pointer text-center leading-tight"
           :class="values[field.key] === opt.value
             ? 'bg-primary-600 text-white border-primary-500'
             : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-primary-400 hover:text-primary-600 dark:hover:text-slate-200'">

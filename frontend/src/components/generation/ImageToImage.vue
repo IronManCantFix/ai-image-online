@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col lg:grid lg:grid-cols-[300px_1fr] gap-4 lg:gap-5">
+  <div class="flex flex-col lg:grid lg:grid-cols-[360px_1fr] gap-4 lg:gap-5">
     <div class="space-y-3">
       <ImageUploader v-model:images="images" />
       <div>

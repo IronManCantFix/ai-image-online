@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col lg:grid lg:grid-cols-[300px_1fr] gap-4 lg:gap-5">
+  <div class="flex flex-col lg:grid lg:grid-cols-[360px_1fr] gap-4 lg:gap-5">
     <div class="space-y-3">
       <div>
         <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">提示词 (Prompt)</label>
