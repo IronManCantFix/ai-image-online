@@ -31,7 +31,7 @@ export const gptImage2Schema: ParamSchema = {
       options: [
         { label: '低（draft，快速生成）', value: 'low' },
         { label: '标准（standard）', value: 'standard' },
-        { label: '高（hd，精细生成）', value: 'high' },
+        { label: '高（hd，精細生成）', value: 'high' },
       ],
       description: '控制生成质量，高质量耗时更长',
     },
@@ -55,17 +55,6 @@ export const gptImage2Schema: ParamSchema = {
       min: 1,
       max: 4,
       description: '一次生成的图片数量（1-4）',
-    },
-    {
-      key: 'response_format',
-      label: '响应格式',
-      type: 'select',
-      default: 'b64_json',
-      options: [
-        { label: 'Base64（直接返回图片数据）', value: 'b64_json' },
-        { label: 'URL（返回图片链接）', value: 'url' },
-      ],
-      description: 'API 返回图片的方式',
     },
   ],
 }

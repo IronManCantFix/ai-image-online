@@ -2,7 +2,7 @@ import type { ImageAdapter, GenParams, EditParams, GenResult, GenResultImage } f
 import { gptImage2Schema } from './schema'
 import { useProxy } from '@/composables/useProxy'
 
-async function parseImageFromResponse(body: string): Promise<GenResultImage[]> {
+async function parseImageFromResponse(body: string): Promise<{ images: GenResultImage[]; raw: unknown }> {
   const data = JSON.parse(body)
   const images: GenResultImage[] = []
   for (const item of data.data || []) {
@@ -18,18 +18,15 @@ async function parseImageFromResponse(body: string): Promise<GenResultImage[]> {
       images.push({ data: blob, mimeType: blob.type, url: URL.createObjectURL(blob) })
     }
   }
-  return images
+  return { images, raw: data }
 }
 
 function buildPayload(params: Record<string, string | number | boolean>) {
   return {
-    model: '', // 在调用时设置
-    prompt: '',
     n: Number(params.n || 1),
     size: String(params.size || '1024x1024'),
     quality: String(params.quality || 'standard'),
     resolution: String(params.resolution || '1k'),
-    response_format: String(params.response_format || 'b64_json'),
   }
 }
 
@@ -47,9 +44,12 @@ export const gptImage2Adapter: ImageAdapter = {
   async textToImage(params: GenParams): Promise<GenResult> {
     const { request } = useProxy()
     const { endpoint, apiKey, model } = params.config
-    const payload = buildPayload(params.params)
-    payload.model = model || 'gpt-image-2'
-    payload.prompt = params.prompt
+    const p = buildPayload(params.params)
+    const payload = {
+      model: model || 'gpt-image-2',
+      prompt: params.prompt,
+      ...p,
+    }
 
     const resp = await request({
       targetUrl: `${endpoint}/images/generations`,
@@ -58,8 +58,8 @@ export const gptImage2Adapter: ImageAdapter = {
       body: JSON.stringify(payload),
     })
     if (!resp.ok) throw new Error(`API 错误 (${resp.status}): ${resp.body}`)
-    const images = await parseImageFromResponse(resp.body)
-    return { images, raw: JSON.parse(resp.body) }
+    const { images, raw } = await parseImageFromResponse(resp.body)
+    return { images, raw }
   },
   async imageToImage(params: EditParams): Promise<GenResult> {
     const { request } = useProxy()
@@ -72,7 +72,6 @@ export const gptImage2Adapter: ImageAdapter = {
     formData.append('size', p.size)
     formData.append('quality', p.quality)
     formData.append('resolution', p.resolution)
-    formData.append('response_format', p.response_format)
     params.images.forEach((file) => formData.append('image', file))
     if (params.mask) formData.append('mask', params.mask)
 
@@ -83,7 +82,7 @@ export const gptImage2Adapter: ImageAdapter = {
       body: formData,
     })
     if (!resp.ok) throw new Error(`API 错误 (${resp.status}): ${resp.body}`)
-    const images = await parseImageFromResponse(resp.body)
-    return { images, raw: JSON.parse(resp.body) }
+    const { images, raw } = await parseImageFromResponse(resp.body)
+    return { images, raw }
   },
 }
