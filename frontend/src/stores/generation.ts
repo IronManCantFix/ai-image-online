@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { randomUUID } from '@/utils/uuid'
 import type { GenResult, GenResultImage } from '@/adapters/types'
 import { getAdapter } from '@/adapters/registry'
 import { useSettingsStore } from '@/stores/settings'
@@ -21,7 +22,7 @@ export const useGenerationStore = defineStore('generation', () => {
 
   function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
     history.value.unshift({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       mode,
       prompt,
       images: result.images,

@@ -50,8 +50,11 @@ func handleProxy(w http.ResponseWriter, r *http.Request) {
 	for key, value := range forwardHeaders {
 		proxyReq.Header.Set(key, value)
 	}
-	if ct := r.Header.Get("Content-Type"); ct != "" {
-		proxyReq.Header.Set("Content-Type", ct)
+	// Only set Content-Type from incoming request if not already provided via forwardHeaders
+	if _, ok := forwardHeaders["Content-Type"]; !ok {
+		if ct := r.Header.Get("Content-Type"); ct != "" {
+			proxyReq.Header.Set("Content-Type", ct)
+		}
 	}
 	proxyReq.Header.Set("Host", proxyReq.URL.Host)
 

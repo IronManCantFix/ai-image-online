@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { randomUUID } from '@/utils/uuid'
 import { ref, toRaw } from 'vue'
 import { saveToGallery, getAllFromGallery, deleteFromGallery, clearGallery, type GalleryItem } from '@/composables/useImageStorage'
 import type { GenResultImage } from '@/adapters/types'
@@ -23,7 +24,7 @@ export const useGalleryStore = defineStore('gallery', () => {
 
   async function save(payload: SavePayload) {
     const item: GalleryItem = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       adapterId: payload.adapterId,
       mode: payload.mode,
       prompt: payload.prompt,
