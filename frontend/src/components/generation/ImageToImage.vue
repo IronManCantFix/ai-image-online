@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col lg:grid lg:grid-cols-[360px_1fr] gap-4 lg:gap-5">
+  <div class="flex flex-col lg:grid lg:grid-cols-[360px_1fr] gap-4 lg:gap-6">
     <div class="space-y-3">
       <ImageUploader v-model:images="images" />
       <div>
@@ -9,12 +9,13 @@
       </div>
       <ParamPanel :schema="schema" @update="onParamsUpdate" />
       <button @click="generate" :disabled="gen.loading || !prompt.trim() || images.length === 0"
-        class="w-full px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px] cursor-pointer transition-colors">
+        class="w-full px-4 py-3 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed min-h-[48px] cursor-pointer transition-colors">
         {{ gen.loading ? '生成中...' : '生成图片' }}
       </button>
     </div>
     <div>
-      <ResultGallery :loading="gen.loading" :error="gen.error" :results="gen.results" @preview="onPreview" @save="onSave" />
+      <ResultGallery :loading="gen.loading" :error="gen.error" :results="gen.results"
+        @preview="onPreview" @save="onSave" />
     </div>
   </div>
 </template>
@@ -36,14 +37,36 @@ const gallery = useGalleryStore()
 const images = ref<File[]>([])
 const prompt = ref('')
 const params = ref<Record<string, string | number | boolean>>({})
+
 const adapter = getAdapter(settings.activeProfile?.adapterId || 'gpt-image-2')!
 const schema: ParamSchema = adapter.getParamSchema()
+
 const emit = defineEmits<{ (e: 'preview', img: GenResultImage): void; (e: 'saved'): void }>()
+
 function onParamsUpdate(values: Record<string, string | number | boolean>) { params.value = values }
 async function generate() { await gen.generateImageToImage(prompt.value, images.value, params.value) }
 function onPreview(img: GenResultImage) { emit('preview', img) }
+
 async function onSave(img: GenResultImage, _index: number) {
-  await gallery.save({ adapterId: settings.activeProfile!.adapterId, mode: 'image-to-image', prompt: prompt.value, params: params.value, image: img, apiConfig: { endpoint: settings.activeProfile!.config.endpoint, model: settings.activeProfile!.config.model } })
-  emit('saved')
+  try {
+    const profile = settings.activeProfile
+    if (!profile || !profile.config.apiKey) {
+      alert('请先配置 API Key')
+      return
+    }
+    await gallery.save({
+      adapterId: profile.adapterId,
+      mode: 'image-to-image',
+      prompt: prompt.value,
+      params: params.value,
+      image: img,
+      apiConfig: { endpoint: profile.config.endpoint, model: profile.config.model },
+    })
+    alert('已保存到画廊！')
+    emit('saved')
+  } catch (e) {
+    console.error('保存失败:', e)
+    alert('保存失败: ' + (e instanceof Error ? e.message : String(e)))
+  }
 }
 </script>
