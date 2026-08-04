@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  ai-image-online:
+    build: .
+    image: ai-image-online:latest
+    container_name: ai-image-online
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/images:/app/data/images
+    environment:
+      - TZ=Asia/Shanghai
+      - PORT=8080
+    restart: unless-stopped
