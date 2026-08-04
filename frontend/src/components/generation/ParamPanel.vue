@@ -5,19 +5,37 @@
     <div v-for="field in schema.fields" :key="field.key">
       <div class="text-sm font-medium text-gray-700 mb-1">{{ field.label }}</div>
 
-      <!-- Select: van-field readonly + van-picker popup -->
-      <van-field
-        v-if="field.type === 'select'"
-        :model-value="displayValues[field.key] || ''"
-        readonly
-        is-link
-        input-align="left"
-        placeholder="请选择"
-        class="!bg-white !rounded-lg !border !border-gray-200"
-        @click="openPicker(field)"
-      />
+      <!-- Select 类型 -->
+      <template v-if="field.type === 'select'">
+        <!-- 移动端：Vant Picker 弹窗 -->
+        <van-field
+          v-if="isMobile"
+          :model-value="displayValues[field.key] || ''"
+          readonly
+          is-link
+          input-align="left"
+          placeholder="请选择"
+          class="!bg-white !rounded-lg !border !border-gray-200"
+          @click="openPicker(field)"
+        />
+        <!-- PC 端：原生 select -->
+        <div v-else class="relative">
+          <select
+            v-model="values[field.key]"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-9 text-sm bg-white
+            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+            min-h-[44px] appearance-none cursor-pointer"
+          >
+            <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
+          <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </template>
 
-      <!-- Number: van-stepper -->
+      <!-- Number 类型：Vant Stepper（两端通用） -->
       <van-stepper
         v-else-if="field.type === 'number'"
         :model-value="Number(values[field.key])"
@@ -27,7 +45,7 @@
         @update:model-value="values[field.key] = $event"
       />
 
-      <!-- Text -->
+      <!-- Text 类型 -->
       <van-field
         v-else-if="field.type === 'text'"
         :model-value="String(values[field.key] || '')"
@@ -35,7 +53,7 @@
         @update:model-value="values[field.key] = $event"
       />
 
-      <!-- Toggle: van-switch -->
+      <!-- Toggle 类型 -->
       <van-switch
         v-else-if="field.type === 'toggle'"
         :model-value="!!values[field.key]"
@@ -45,8 +63,9 @@
       <p v-if="field.description" class="mt-1 text-xs text-gray-400">{{ field.description }}</p>
     </div>
 
-    <!-- Picker 弹窗 -->
+    <!-- Vant Picker 弹窗（仅移动端使用） -->
     <van-popup
+      v-if="isMobile"
       v-model:show="pickerShow"
       position="bottom"
       round
@@ -63,10 +82,12 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import type { ParamSchema, ParamField } from '@/adapters/types'
+import { useIsMobile } from '@/composables/useMediaQuery'
 
 const props = defineProps<{ schema: ParamSchema }>()
 const emit = defineEmits<{ (e: 'update', values: Record<string, string | number | boolean>): void }>()
 
+const isMobile = useIsMobile()
 const values = ref<Record<string, string | number | boolean>>({})
 
 const displayValues = computed(() => {

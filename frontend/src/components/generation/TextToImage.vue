@@ -27,10 +27,17 @@
         </div>
       </div>
 
-      <van-button type="primary" block round :disabled="gen.loading || !prompt.trim()" :loading="gen.loading"
+      <!-- 移动端 Vant 按钮 -->
+      <van-button v-if="isMobile" type="primary" block round :disabled="gen.loading || !prompt.trim()" :loading="gen.loading"
         loading-text="生成中..." @click="generate">
         生成图片
       </van-button>
+      <!-- PC 端原生按钮 -->
+      <button v-else @click="generate" :disabled="gen.loading || !prompt.trim()"
+        class="w-full px-4 py-2.5 rounded-lg bg-primary-600 text-white text-sm font-medium
+        hover:bg-primary-700 disabled:opacity-50 transition-colors">
+        {{ gen.loading ? '生成中...' : '生成图片' }}
+      </button>
     </div>
 
     <div>
@@ -49,10 +56,12 @@ import type { ParamSchema, GenResultImage } from '@/adapters/types'
 import ParamPanel from './ParamPanel.vue'
 import ResultGallery from './ResultGallery.vue'
 import { useGalleryStore } from '@/stores/gallery'
+import { useIsMobile } from '@/composables/useMediaQuery'
 
 const gen = useGenerationStore()
 const settings = useSettingsStore()
 const gallery = useGalleryStore()
+const isMobile = useIsMobile()
 const prompt = ref('')
 const params = ref<Record<string, string | number | boolean>>({})
 const paramOpen = ref(false)
