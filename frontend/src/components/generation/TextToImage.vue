@@ -8,19 +8,7 @@
           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[100px]"></textarea>
       </div>
 
-      <div class="lg:block">
-        <button @click="paramOpen = !paramOpen"
-          class="lg:hidden w-full flex items-center justify-between px-3 py-2.5 rounded-lg
-          border border-gray-200 bg-gray-50 text-sm font-medium text-gray-700 min-h-[44px]">
-          <span>生成参数</span>
-          <svg class="w-4 h-4 transition-transform" :class="paramOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        <div :class="paramOpen ? 'block mt-3' : 'hidden lg:block'">
-          <ParamPanel :schema="schema" @update="onParamsUpdate" />
-        </div>
-      </div>
+      <ParamPanel :schema="schema" @update="onParamsUpdate" />
 
       <button @click="generate" :disabled="gen.loading || !prompt.trim()"
         class="w-full px-4 py-3 rounded-lg bg-primary-600 text-white text-sm font-medium
@@ -51,7 +39,6 @@ const settings = useSettingsStore()
 const gallery = useGalleryStore()
 const prompt = ref('')
 const params = ref<Record<string, string | number | boolean>>({})
-const paramOpen = ref(false)
 
 const adapter = getAdapter(settings.activeProfile?.adapterId || 'gpt-image-2')!
 const schema: ParamSchema = adapter.getParamSchema()
