@@ -21,6 +21,18 @@ async function parseImageFromResponse(body: string): Promise<GenResultImage[]> {
   return images
 }
 
+function buildPayload(params: Record<string, string | number | boolean>) {
+  return {
+    model: '', // 在调用时设置
+    prompt: '',
+    n: Number(params.n || 1),
+    size: String(params.size || '1024x1024'),
+    quality: String(params.quality || 'standard'),
+    resolution: String(params.resolution || '1k'),
+    response_format: String(params.response_format || 'b64_json'),
+  }
+}
+
 export const gptImage2Adapter: ImageAdapter = {
   id: 'gpt-image-2',
   name: 'GPT Image 2',
@@ -35,13 +47,10 @@ export const gptImage2Adapter: ImageAdapter = {
   async textToImage(params: GenParams): Promise<GenResult> {
     const { request } = useProxy()
     const { endpoint, apiKey, model } = params.config
-    const payload = {
-      model: model || 'gpt-image-2',
-      prompt: params.prompt,
-      n: Number(params.params.n || 1),
-      size: String(params.params.size || '1024x1024'),
-      response_format: String(params.params.response_format || 'b64_json'),
-    }
+    const payload = buildPayload(params.params)
+    payload.model = model || 'gpt-image-2'
+    payload.prompt = params.prompt
+
     const resp = await request({
       targetUrl: `${endpoint}/images/generations`,
       method: 'POST',
@@ -55,14 +64,18 @@ export const gptImage2Adapter: ImageAdapter = {
   async imageToImage(params: EditParams): Promise<GenResult> {
     const { request } = useProxy()
     const { endpoint, apiKey, model } = params.config
+    const p = buildPayload(params.params)
     const formData = new FormData()
     formData.append('model', model || 'gpt-image-2')
     formData.append('prompt', params.prompt)
-    formData.append('n', String(params.params.n || 1))
-    formData.append('size', String(params.params.size || '1024x1024'))
-    formData.append('response_format', String(params.params.response_format || 'b64_json'))
+    formData.append('n', String(p.n))
+    formData.append('size', p.size)
+    formData.append('quality', p.quality)
+    formData.append('resolution', p.resolution)
+    formData.append('response_format', p.response_format)
     params.images.forEach((file) => formData.append('image', file))
     if (params.mask) formData.append('mask', params.mask)
+
     const resp = await request({
       targetUrl: `${endpoint}/images/edits`,
       method: 'POST',
