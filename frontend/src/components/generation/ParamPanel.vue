@@ -4,28 +4,28 @@
     <div v-for="field in schema.fields" :key="field.key">
       <label class="block text-sm font-medium text-gray-600 mb-1">{{ field.label }}</label>
 
-      <!-- Select -->
-      <select v-if="field.type === 'select'" v-model="values[field.key]"
-        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white appearance-none
-        bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23667eea%22%3E%3Cpath%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%2F%3E%3C%2Fsvg%3E')]
-        bg-no-repeat bg-[right_0.5rem_center] bg-[length:1.5rem] pr-10
-        focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-        min-h-[44px]">
-        <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-      </select>
+      <div v-if="field.type === 'select'" class="relative">
+        <select v-model="values[field.key]"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-9 text-sm bg-white
+          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+          min-h-[44px] appearance-none">
+          <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+        </select>
+        <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
 
-      <!-- Number -->
       <input v-else-if="field.type === 'number'" type="number" v-model.number="values[field.key]"
         :min="field.min" :max="field.max"
         class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white
         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[44px]" />
 
-      <!-- Text -->
       <input v-else-if="field.type === 'text'" type="text" v-model="values[field.key]"
         class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white
         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[44px]" />
 
-      <!-- Toggle -->
       <div v-else-if="field.type === 'toggle'">
         <button @click="values[field.key] = !values[field.key]"
           class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors"

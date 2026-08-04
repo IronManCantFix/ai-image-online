@@ -1,7 +1,6 @@
 <template>
   <div class="flex flex-col lg:grid lg:grid-cols-[320px_1fr] gap-4 lg:gap-6">
-    <!-- 输入区 -->
-    <div class="space-y-4 lg:order-1 order-2">
+    <div class="space-y-4">
       <ImageUploader v-model:images="images" />
 
       <div>
@@ -12,11 +11,10 @@
           min-h-[100px]"></textarea>
       </div>
 
-      <!-- 参数面板：移动端可折叠 -->
       <div class="lg:block">
         <button @click="paramOpen = !paramOpen"
           class="lg:hidden w-full flex items-center justify-between px-3 py-2.5 rounded-lg
-          border border-gray-200 bg-gray-50 text-sm font-medium text-gray-700">
+          border border-gray-200 bg-gray-50 text-sm font-medium text-gray-700 min-h-[44px]">
           <span>生成参数</span>
           <svg class="w-4 h-4 transition-transform" :class="paramOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -34,8 +32,7 @@
       </button>
     </div>
 
-    <!-- 结果区 -->
-    <div class="lg:order-2 order-1">
+    <div>
       <ResultGallery :loading="gen.loading" :error="gen.error" :results="gen.results"
         @preview="onPreview" @save="onSave" />
     </div>
