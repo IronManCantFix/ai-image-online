@@ -7,9 +7,13 @@
         </router-link>
         <div class="hidden sm:flex items-center gap-1">
           <router-link v-for="item in navItems" :key="item.path" :to="item.path"
-            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer min-h-[40px] flex items-center"
+            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer min-h-[40px] flex items-center relative"
             :class="$route.path === item.path ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800'">
             {{ item.label }}
+            <span v-if="item.path === '/history' && historyCount > 0"
+              class="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary-500 text-white text-[10px] font-bold px-1">
+              {{ historyCount > 99 ? '99+' : historyCount }}
+            </span>
           </router-link>
         </div>
         <div class="flex items-center gap-2">
@@ -28,9 +32,13 @@
       <transition name="slide">
         <div v-if="mobileOpen" class="sm:hidden pb-3 space-y-1">
           <router-link v-for="item in navItems" :key="item.path" :to="item.path" @click="mobileOpen = false"
-            class="block px-3 py-3 rounded-lg text-base font-medium transition-colors cursor-pointer min-h-[48px] flex items-center"
+            class="block px-3 py-3 rounded-lg text-base font-medium transition-colors cursor-pointer min-h-[48px] flex items-center relative"
             :class="$route.path === item.path ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300' : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'">
             {{ item.label }}
+            <span v-if="item.path === '/history' && historyCount > 0"
+              class="absolute top-2 right-2 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary-500 text-white text-[10px] font-bold px-1">
+              {{ historyCount > 99 ? '99+' : historyCount }}
+            </span>
           </router-link>
         </div>
       </transition>
@@ -39,15 +47,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
+import { useGenerationStore } from '@/stores/generation'
 
 const mobileOpen = ref(false)
 const { theme, toggleTheme } = useTheme()
+const genStore = useGenerationStore()
+
+const historyCount = computed(() => genStore.history.length)
 
 const navItems = [
-  { path: '/generate', label: '生成' },
+  { path: '/generate', label: '生图' },
   { path: '/gallery', label: '画廊' },
+  { path: '/history', label: '历史' },
   { path: '/settings', label: '设置' },
 ]
 </script>
