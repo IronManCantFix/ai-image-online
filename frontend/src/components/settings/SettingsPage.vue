@@ -48,17 +48,43 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useSettingsStore } from '@/stores/settings'
 import { getAllAdapters, getAdapter } from '@/adapters/registry'
 import { useConnectionTest } from '@/composables/useConnectionTest'
+
 const store = useSettingsStore()
+const { activeProfile } = storeToRefs(store)
 const adapters = getAllAdapters()
 const { testing, testResult, test } = useConnectionTest()
+
 const showAddProfile = ref(false)
 const newProfileName = ref('')
-const activeProfile = computed(() => store.activeProfile)
-function save() { if (activeProfile.value) store.updateProfile(activeProfile.value.id, { config: { ...activeProfile.value.config } }) }
-function onAdapterChange() { const a = getAdapter(activeProfile.value.adapterId); if (a?.defaultConfig) { activeProfile.value.config.model = a.defaultConfig.model || ''; if (!activeProfile.value.config.endpoint && a.defaultConfig.endpoint) activeProfile.value.config.endpoint = a.defaultConfig.endpoint } save() }
-function addProfile() { if (!newProfileName.value.trim()) return; const a = getAdapter('gpt-image-2')!; store.addProfile(newProfileName.value, a.id, { endpoint: a.defaultConfig.endpoint || '', apiKey: '', model: a.defaultConfig.model || '' }); newProfileName.value = ''; showAddProfile.value = false }
-function runTest() { if (activeProfile.value) test(activeProfile.value.config.endpoint, activeProfile.value.config.apiKey, activeProfile.value.config.model) }
+
+function save() {
+  if (activeProfile.value) {
+    store.updateProfile(activeProfile.value.id, { config: { ...activeProfile.value.config } })
+  }
+}
+
+function onAdapterChange() {
+  const a = getAdapter(activeProfile.value.adapterId)
+  if (a?.defaultConfig) {
+    activeProfile.value.config.model = a.defaultConfig.model || ''
+    if (!activeProfile.value.config.endpoint && a.defaultConfig.endpoint) activeProfile.value.config.endpoint = a.defaultConfig.endpoint
+  }
+  save()
+}
+
+function addProfile() {
+  if (!newProfileName.value.trim()) return
+  const a = getAdapter('gpt-image-2')!
+  store.addProfile(newProfileName.value, a.id, { endpoint: a.defaultConfig.endpoint || '', apiKey: '', model: a.defaultConfig.model || '' })
+  newProfileName.value = ''
+  showAddProfile.value = false
+}
+
+function runTest() {
+  if (activeProfile.value) test(activeProfile.value.config.endpoint, activeProfile.value.config.apiKey, activeProfile.value.config.model)
+}
 </script>

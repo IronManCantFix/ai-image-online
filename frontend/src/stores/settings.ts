@@ -16,6 +16,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const defaultAdapter = getDefaultAdapter()
   const profiles = ref<SettingsProfile[]>([])
   const activeProfileId = ref<string>('')
+  const loaded = ref(false)
 
   function load() {
     try {
@@ -41,6 +42,7 @@ export const useSettingsStore = defineStore('settings', () => {
       activeProfileId.value = profile.id
       save()
     }
+    loaded.value = true
   }
 
   function save() {
@@ -48,6 +50,10 @@ export const useSettingsStore = defineStore('settings', () => {
       profiles: profiles.value,
       activeProfileId: activeProfileId.value,
     }))
+  }
+
+  function reload() {
+    load()
   }
 
   const activeProfile = computed(() =>
@@ -82,5 +88,5 @@ export const useSettingsStore = defineStore('settings', () => {
 
   load()
 
-  return { profiles, activeProfileId, activeProfile, activeConfig, updateProfile, addProfile, deleteProfile, setActiveProfile }
+  return { profiles, activeProfileId, activeProfile, activeConfig, loaded, updateProfile, addProfile, deleteProfile, setActiveProfile, reload }
 })
