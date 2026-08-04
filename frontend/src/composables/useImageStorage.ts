@@ -7,10 +7,13 @@ let dbPromise: Promise<IDBPDatabase> | null = null
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, 1, {
+    dbPromise = openDB(DB_NAME, 2, {
       upgrade(db) {
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: 'id' })
+        }
+        if (!db.objectStoreNames.contains('history')) {
+          db.createObjectStore('history', { keyPath: 'id' })
         }
       },
     })

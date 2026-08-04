@@ -4,6 +4,7 @@ import { randomUUID } from '@/utils/uuid'
 import type { GenResult, GenResultImage } from '@/adapters/types'
 import { getAdapter } from '@/adapters/registry'
 import { useSettingsStore } from '@/stores/settings'
+import { saveHistoryEntry, getAllHistory, deleteHistoryEntry, clearHistory as clearHistoryDB, type PersistedHistoryEntry } from '@/composables/useHistoryStorage'
 
 export interface HistoryEntry {
   id: string
@@ -21,15 +22,40 @@ export const useGenerationStore = defineStore('generation', () => {
   const imageResults = ref<GenResult | null>(null)
   const history = ref<HistoryEntry[]>([])
 
-  function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
-    history.value.unshift({
+  function toPersistedEntry(mode: HistoryEntry['mode'], prompt: string, result: GenResult): PersistedHistoryEntry {
+    return {
       id: randomUUID(),
       mode,
       prompt,
-      images: result.images,
+      images: result.images.map(img => ({ data: img.data, mimeType: img.mimeType })),
       raw: result.raw,
       createdAt: Date.now(),
-    })
+    }
+  }
+
+  function toHistoryEntry(entry: PersistedHistoryEntry): HistoryEntry {
+    return {
+      id: entry.id,
+      mode: entry.mode,
+      prompt: entry.prompt,
+      images: entry.images.map(img => {
+        const url = URL.createObjectURL(img.data)
+        return { data: img.data, mimeType: img.mimeType, url }
+      }),
+      raw: entry.raw,
+      createdAt: entry.createdAt,
+    }
+  }
+
+  async function loadHistory() {
+    const entries = await getAllHistory()
+    history.value = entries.map(toHistoryEntry)
+  }
+
+  function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
+    const entry = toPersistedEntry(mode, prompt, result)
+    history.value.unshift(toHistoryEntry(entry))
+    saveHistoryEntry(entry)
   }
 
   async function generateTextToImage(prompt: string, params: Record<string, string | number | boolean>) {
@@ -69,8 +95,9 @@ export const useGenerationStore = defineStore('generation', () => {
     error.value = null
   }
 
-  function removeHistory(id: string) {
+  async function removeHistory(id: string) {
     history.value = history.value.filter(h => h.id !== id)
+    await deleteHistoryEntry(id)
   }
 
   function removeImageFromHistory(entryId: string, imageIndex: number) {
@@ -92,7 +119,9 @@ export const useGenerationStore = defineStore('generation', () => {
     history.value = history.value.filter(h => h.images.length > 0)
   }
 
-  function clearHistory() { history.value = [] }
+  async function clearHistory() { history.value = []; await clearHistoryDB() }
+
+  loadHistory()
 
   return {
     loading, error, textResults, imageResults, history,
