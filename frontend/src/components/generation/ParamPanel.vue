@@ -20,7 +20,7 @@
         <button @click="increment(field)" class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer">+</button>
       </div>
 
-      <n-input v-else-if="field.type === 'text'" v-model:value="values[field.key]" size="small" />
+      <n-input v-else-if="field.type === 'text'" :value="String(values[field.key] || '')" size="small" @update:value="values[field.key] = $event" />
 
       <button v-else-if="field.type === 'toggle'" @click="values[field.key] = !values[field.key]"
         class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer"
