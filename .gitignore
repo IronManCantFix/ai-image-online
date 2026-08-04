@@ -3,6 +3,8 @@ frontend/dist/
 frontend/tsconfig.tsbuildinfo
 frontend/vite.config.d.ts
 frontend/vite.config.js
+frontend/src/**/*.js
+frontend/src/**/*.js.map
 server/server
 server/static/
 .env
