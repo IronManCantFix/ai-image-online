@@ -1,12 +1,18 @@
 <template>
   <div>
     <!-- 提供商选择 -->
-    <div class="flex items-center gap-2 mb-4">
-      <span class="text-xs text-slate-400 dark:text-slate-600 shrink-0">提供商</span>
-      <select v-model="store.activeProfileId" @change="store.setActiveProfile(store.activeProfileId)"
-        class="flex-1 sm:max-w-[200px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer min-h-[32px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors">
-        <option v-for="p in store.profiles" :key="p.id" :value="p.id">{{ p.name }}</option>
-      </select>
+    <div class="mb-4">
+      <label class="block text-xs text-slate-400 dark:text-slate-600 mb-1">提供商</label>
+      <div class="relative">
+        <select v-model="store.activeProfileId" @change="store.setActiveProfile(store.activeProfileId)"
+          class="w-full sm:max-w-[240px] appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-9 text-sm text-slate-700 dark:text-slate-300 cursor-pointer min-h-[40px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors">
+          <option v-for="p in store.profiles" :key="p.id" :value="p.id">{{ p.name }}</option>
+        </select>
+        <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
     </div>
 
     <!-- Tab 切换 -->
