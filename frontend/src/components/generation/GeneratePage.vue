@@ -1,27 +1,21 @@
 <template>
   <div>
-    <!-- Tab 切换 -->
-    <div class="flex gap-2 mb-6 border-b border-gray-200">
+    <div class="flex gap-1 mb-6 border-b border-slate-800">
       <button v-for="tab in tabs" :key="tab.id" @click="mode = tab.id"
-        class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px min-h-[44px]"
-        :class="mode === tab.id ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'">
+        class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px cursor-pointer min-h-[44px]"
+        :class="mode === tab.id ? 'border-primary-500 text-primary-300' : 'border-transparent text-slate-500 hover:text-slate-300'">
         {{ tab.label }}
       </button>
     </div>
-
-    <!-- 未配置 API Key 提示 -->
-    <div v-if="!hasApiKey" class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-      <p class="text-amber-800 text-sm">
+    <div v-if="!hasApiKey" class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6">
+      <p class="text-amber-300 text-sm">
         尚未配置 API Key，请先前往
-        <router-link to="/settings" class="underline font-medium">设置页面</router-link>
+        <router-link to="/settings" class="underline font-medium text-amber-200">设置页面</router-link>
         配置。
       </p>
     </div>
-
     <TextToImage v-if="mode === 'text'" @preview="onPreview" @saved="onSaved" />
     <ImageToImage v-else @preview="onPreview" @saved="onSaved" />
-
-    <!-- 图片预览弹窗 -->
     <ImageModal v-if="previewImage" :image="previewImage" @close="previewImage = null" />
   </div>
 </template>
@@ -37,12 +31,8 @@ import ImageModal from '@/components/ui/ImageModal.vue'
 const settings = useSettingsStore()
 const mode = ref<'text' | 'image'>('text')
 const previewImage = ref<GenResultImage | null>(null)
-
-const tabs = [
-  { id: 'text' as const, label: '文生图' },
-  { id: 'image' as const, label: '图生图' },
-]
+const tabs = [{ id: 'text' as const, label: '文生图' }, { id: 'image' as const, label: '图生图' }]
 const hasApiKey = computed(() => !!settings.activeProfile?.config.apiKey)
 function onPreview(img: GenResultImage) { previewImage.value = img }
-function onSaved() { /* MVP: 可加 toast */ }
+function onSaved() {}
 </script>

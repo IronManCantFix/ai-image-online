@@ -1,51 +1,37 @@
 <template>
   <div>
-    <!-- 加载中 -->
     <div v-if="loading" class="flex flex-col items-center justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600 mb-4"></div>
-      <p class="text-gray-500 text-sm">生成中，请稍候...</p>
+      <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-700 border-t-primary-500 mb-4"></div>
+      <p class="text-slate-500 text-sm">生成中，请稍候...</p>
     </div>
-
-    <!-- 错误 -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <p class="text-red-700 text-sm font-medium">生成失败</p>
-      <p class="text-red-600 text-sm mt-1 break-all">{{ error }}</p>
+    <div v-else-if="error" class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+      <p class="text-red-300 text-sm font-medium">生成失败</p>
+      <p class="text-red-400/80 text-sm mt-1 break-all">{{ error }}</p>
     </div>
-
-    <!-- 结果 -->
     <div v-else-if="results && results.images.length">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div v-for="(img, i) in results.images" :key="i"
-          class="relative group rounded-lg overflow-hidden border border-gray-200 bg-white">
+        <div v-for="(img, i) in results.images" :key="i" class="relative group rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
           <img :src="img.url" :alt="`生成结果 ${i + 1}`" class="w-full h-auto cursor-pointer" @click="$emit('preview', img)" />
-          <!-- 移动端始终显示操作按钮 -->
-          <div class="absolute bottom-0 inset-x-0 bg-black/50 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex justify-end p-2">
-            <button @click="download(img, i)" class="text-white text-sm px-3 py-1.5 rounded hover:bg-white/20 min-h-[36px]">下载</button>
-            <button @click="$emit('save', img, i)" class="text-white text-sm px-3 py-1.5 rounded hover:bg-white/20 ml-1 min-h-[36px]">保存</button>
+          <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex justify-end p-2 gap-1">
+            <button @click="download(img, i)" class="text-white text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur cursor-pointer">下载</button>
+            <button @click="$emit('save', img, i)" class="text-white text-xs px-3 py-1.5 rounded-lg bg-primary-500/30 hover:bg-primary-500/50 backdrop-blur cursor-pointer ml-1">保存</button>
           </div>
         </div>
       </div>
-
-      <!-- 原始响应展示 -->
-      <div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
-        <button @click="showRaw = !showRaw"
-          class="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors min-h-[44px]">
+      <div class="mt-6 border border-slate-800 rounded-xl overflow-hidden">
+        <button @click="showRaw = !showRaw" class="w-full flex items-center justify-between px-4 py-2.5 bg-slate-900 hover:bg-slate-800/50 transition-colors cursor-pointer min-h-[44px]">
           <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-gray-500 transition-transform" :class="showRaw ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-            <span class="text-sm font-medium text-gray-700">原始响应数据</span>
+            <svg class="w-4 h-4 text-slate-500 transition-transform" :class="showRaw ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            <span class="text-sm font-medium text-slate-400">原始响应数据</span>
           </div>
-          <span class="text-xs text-gray-400">{{ showRaw ? '收起' : '展开' }}</span>
+          <span class="text-xs text-slate-600">{{ showRaw ? '收起' : '展开' }}</span>
         </button>
-        <div v-if="showRaw" class="p-4 bg-gray-900 overflow-auto max-h-60 sm:max-h-96">
-          <pre class="text-xs text-green-400 whitespace-pre-wrap break-all font-mono">{{ formattedRaw }}</pre>
+        <div v-if="showRaw" class="p-4 bg-slate-950 overflow-auto max-h-60 sm:max-h-96">
+          <pre class="text-xs text-green-400/80 whitespace-pre-wrap break-all font-mono">{{ formattedRaw }}</pre>
         </div>
       </div>
     </div>
-
-    <!-- 空状态 -->
-    <div v-else class="flex items-center justify-center py-20 text-gray-400 text-sm">
+    <div v-else class="flex items-center justify-center py-20 text-slate-700 text-sm">
       <p>生成的图片将显示在这里</p>
     </div>
   </div>
@@ -54,30 +40,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { GenResult, GenResultImage } from '@/adapters/types'
-
 const props = defineProps<{ loading: boolean; error: string | null; results: GenResult | null }>()
-defineEmits<{
-  (e: 'preview', img: GenResultImage): void
-  (e: 'save', img: GenResultImage, index: number): void
-}>()
-
+defineEmits<{ (e: 'preview', img: GenResultImage): void; (e: 'save', img: GenResultImage, index: number): void }>()
 const showRaw = ref(false)
-
-const formattedRaw = computed(() => {
-  if (!props.results?.raw) return ''
-  try {
-    return JSON.stringify(props.results.raw, null, 2)
-  } catch {
-    return String(props.results.raw)
-  }
-})
-
-function download(img: GenResultImage, index: number) {
-  const url = URL.createObjectURL(img.data)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `ai-image-${Date.now()}-${index + 1}.png`
-  a.click()
-  URL.revokeObjectURL(url)
-}
+const formattedRaw = computed(() => { try { return JSON.stringify(props.results?.raw, null, 2) } catch { return String(props.results?.raw) } })
+function download(img: GenResultImage, index: number) { const url = URL.createObjectURL(img.data); const a = document.createElement('a'); a.href = url; a.download = `ai-image-${Date.now()}-${index + 1}.png`; a.click(); URL.revokeObjectURL(url) }
 </script>

@@ -3,24 +3,17 @@
 @tailwind utilities;
 
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+  @apply bg-slate-950 text-slate-100 antialiased;
+  font-family: 'Outfit', system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
 }
 
-/* 移动端 select 原生样式优化 */
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
+select { -webkit-appearance: none; appearance: none; }
+input, textarea, select, button { font-size: 16px; }
+* { -webkit-overflow-scrolling: touch; }
 
-/* 移动端 textarea/input 无圆角放大 */
-input, textarea, select, button {
-  font-size: 16px;
-}
-
-/* 移动端触摸滚动 */
-* {
-  -webkit-overflow-scrolling: touch;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #64748b; }
