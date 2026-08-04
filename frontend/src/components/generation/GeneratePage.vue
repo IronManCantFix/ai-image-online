@@ -13,17 +13,13 @@
 
     <div class="flex gap-1 mb-5 border-b border-slate-200 dark:border-slate-800">
       <button v-for="tab in tabs" :key="tab.id" @click="mode = tab.id"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px cursor-pointer min-h-[44px] relative"
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px cursor-pointer min-h-[44px]"
         :class="mode === tab.id ? 'border-primary-500 text-primary-700 dark:text-primary-300' : 'border-transparent text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'">
         {{ tab.label }}
-        <span v-if="tab.id === 'history' && historyCount > 0"
-          class="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary-500 text-white text-[10px] font-bold px-1">
-          {{ historyCount > 99 ? '99+' : historyCount }}
-        </span>
       </button>
     </div>
 
-    <div v-if="!hasApiKey && mode !== 'history'" class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl p-4 mb-5">
+    <div v-if="!hasApiKey" class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl p-4 mb-5">
       <p class="text-amber-700 dark:text-amber-300 text-sm">
         尚未配置 API Key，请先前往
         <router-link to="/settings" class="underline font-medium text-amber-800 dark:text-amber-200">设置页面</router-link>
@@ -32,36 +28,28 @@
     </div>
 
     <TextToImage v-if="mode === 'text'" @preview="onPreview" @saved="onSaved" />
-    <ImageToImage v-else-if="mode === 'image'" @preview="onPreview" @saved="onSaved" />
-    <HistoryPanel v-else @preview="onPreview" />
+    <ImageToImage v-else @preview="onPreview" @saved="onSaved" />
     <ImageModal v-if="previewImage" :image="previewImage" @close="previewImage = null" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { NSelect } from 'naive-ui'
 import { useSettingsStore } from '@/stores/settings'
-import { useGenerationStore } from '@/stores/generation'
 import type { GenResultImage } from '@/adapters/types'
 import TextToImage from './TextToImage.vue'
 import ImageToImage from './ImageToImage.vue'
-import HistoryPanel from './HistoryPanel.vue'
 import ImageModal from '@/components/ui/ImageModal.vue'
 
 const store = useSettingsStore()
-const genStore = useGenerationStore()
-const mode = ref<'text' | 'image' | 'history'>('text')
-
-watch(mode, () => { if (mode.value !== 'history') genStore.clearResults() })
+const mode = ref<'text' | 'image'>('text')
 const previewImage = ref<GenResultImage | null>(null)
 const tabs = [
   { id: 'text' as const, label: '文生图' },
   { id: 'image' as const, label: '图生图' },
-  { id: 'history' as const, label: '历史' },
 ]
 const hasApiKey = computed(() => !!store.activeProfile?.config.apiKey)
-const historyCount = computed(() => genStore.history.length)
 
 const selectedProfileId = ref(store.activeProfileId)
 const profileOptions = computed(() =>
