@@ -1,16 +1,16 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">历史画廊</h1>
+    <div class="flex items-center justify-between mb-4 sm:mb-6">
+      <h1 class="text-xl sm:text-2xl font-bold">历史画廊</h1>
       <button v-if="gallery.items.length" @click="confirmClear"
-        class="px-3 py-1.5 text-sm rounded-md border border-red-300 text-red-600 hover:bg-red-50">清空全部</button>
+        class="px-3 py-2 text-sm rounded-lg border border-red-300 text-red-600 hover:bg-red-50 min-h-[40px]">清空全部</button>
     </div>
     <div v-if="!gallery.loaded" class="text-center py-20 text-gray-400">加载中...</div>
     <div v-else-if="gallery.items.length === 0" class="text-center py-20 text-gray-400">
       <p>还没有保存的图片</p>
       <p class="text-sm mt-1">在生成页面点击"保存到画廊"即可收藏</p>
     </div>
-    <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
       <div v-for="item in gallery.items" :key="item.id"
         class="relative group rounded-lg overflow-hidden border border-gray-200 bg-white cursor-pointer"
         @click="previewItem(item)">
@@ -24,22 +24,23 @@
         </div>
       </div>
     </div>
-    <div v-if="previewing" @click="previewing = null" class="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
-      <div @click.stop class="relative max-w-[90vw] max-h-[90vh]">
-        <img :src="getURL(previewing)" alt="预览" class="max-w-full max-h-[80vh] rounded-lg" />
-        <div class="bg-white rounded-lg mt-3 p-4 max-w-[90vw]">
-          <p class="text-sm text-gray-800">{{ previewing.prompt }}</p>
-          <div class="flex gap-3 mt-2 text-xs text-gray-500">
+    <div v-if="previewing" @click="previewing = null" class="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-2 sm:p-4">
+      <div @click.stop class="relative max-w-[95vw] max-h-[95vh] overflow-auto">
+        <img :src="getURL(previewing)" alt="预览" class="max-w-full max-h-[70vh] rounded-lg mx-auto" />
+        <div class="bg-white rounded-lg mt-2 p-3 sm:p-4">
+          <p class="text-sm text-gray-800 break-all">{{ previewing.prompt }}</p>
+          <div class="flex flex-wrap gap-2 mt-2 text-xs text-gray-500">
             <span>{{ previewing.mode === 'text-to-image' ? '文生图' : '图生图' }}</span>
             <span>{{ previewing.apiConfig.model }}</span>
             <span>{{ new Date(previewing.createdAt).toLocaleString() }}</span>
           </div>
         </div>
-        <button @click="previewing = null" class="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center">×</button>
+        <button @click="previewing = null" class="absolute top-2 right-2 w-9 h-9 bg-black/50 text-white rounded-full flex items-center justify-center text-xl">×</button>
       </div>
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useGalleryStore } from '@/stores/gallery'

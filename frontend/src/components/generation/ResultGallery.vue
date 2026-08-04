@@ -18,9 +18,10 @@
         <div v-for="(img, i) in results.images" :key="i"
           class="relative group rounded-lg overflow-hidden border border-gray-200 bg-white">
           <img :src="img.url" :alt="`生成结果 ${i + 1}`" class="w-full h-auto cursor-pointer" @click="$emit('preview', img)" />
-          <div class="absolute bottom-0 inset-x-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex justify-end p-2">
-            <button @click="download(img, i)" class="text-white text-sm px-2 py-1 rounded hover:bg-white/20">下载</button>
-            <button @click="$emit('save', img, i)" class="text-white text-sm px-2 py-1 rounded hover:bg-white/20 ml-1">保存到画廊</button>
+          <!-- 移动端始终显示操作按钮 -->
+          <div class="absolute bottom-0 inset-x-0 bg-black/50 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex justify-end p-2">
+            <button @click="download(img, i)" class="text-white text-sm px-3 py-1.5 rounded hover:bg-white/20 min-h-[36px]">下载</button>
+            <button @click="$emit('save', img, i)" class="text-white text-sm px-3 py-1.5 rounded hover:bg-white/20 ml-1 min-h-[36px]">保存</button>
           </div>
         </div>
       </div>
@@ -28,16 +29,16 @@
       <!-- 原始响应展示 -->
       <div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
         <button @click="showRaw = !showRaw"
-          class="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors">
+          class="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors min-h-[44px]">
           <div class="flex items-center gap-2">
             <svg class="w-4 h-4 text-gray-500 transition-transform" :class="showRaw ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
             <span class="text-sm font-medium text-gray-700">原始响应数据</span>
           </div>
-          <span class="text-xs text-gray-400">{{ showRaw ? '点击收起' : '点击展开' }}</span>
+          <span class="text-xs text-gray-400">{{ showRaw ? '收起' : '展开' }}</span>
         </button>
-        <div v-if="showRaw" class="p-4 bg-gray-900 overflow-auto max-h-96">
+        <div v-if="showRaw" class="p-4 bg-gray-900 overflow-auto max-h-60 sm:max-h-96">
           <pre class="text-xs text-green-400 whitespace-pre-wrap break-all font-mono">{{ formattedRaw }}</pre>
         </div>
       </div>

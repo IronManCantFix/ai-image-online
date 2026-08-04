@@ -1,4 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body { @apply bg-gray-50 text-gray-900 antialiased; }
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 移动端 select 原生样式优化 */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* 移动端 textarea/input 无圆角放大 */
+input, textarea, select, button {
+  font-size: 16px;
+}
+
+/* 移动端触摸滚动 */
+* {
+  -webkit-overflow-scrolling: touch;
+}

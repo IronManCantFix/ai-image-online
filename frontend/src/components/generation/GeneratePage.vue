@@ -1,12 +1,15 @@
 <template>
   <div>
+    <!-- Tab 切换 -->
     <div class="flex gap-2 mb-6 border-b border-gray-200">
       <button v-for="tab in tabs" :key="tab.id" @click="mode = tab.id"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+        class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px min-h-[44px]"
         :class="mode === tab.id ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'">
         {{ tab.label }}
       </button>
     </div>
+
+    <!-- 未配置 API Key 提示 -->
     <div v-if="!hasApiKey" class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
       <p class="text-amber-800 text-sm">
         尚未配置 API Key，请先前往
@@ -14,11 +17,15 @@
         配置。
       </p>
     </div>
+
     <TextToImage v-if="mode === 'text'" @preview="onPreview" @saved="onSaved" />
     <ImageToImage v-else @preview="onPreview" @saved="onSaved" />
+
+    <!-- 图片预览弹窗 -->
     <ImageModal v-if="previewImage" :image="previewImage" @close="previewImage = null" />
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
