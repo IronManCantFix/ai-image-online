@@ -1,4 +1,4 @@
-import { openDB } from 'idb'
+import { openDB, type IDBPDatabase } from 'idb'
 import type { GenResultImage } from '@/adapters/types'
 
 const DB_NAME = 'ai-image-online'
@@ -14,14 +14,22 @@ export interface PersistedHistoryEntry {
   createdAt: number
 }
 
-async function getDB() {
-  return openDB(DB_NAME, 2, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-      }
-    },
-  })
+let dbPromise: Promise<IDBPDatabase> | null = null
+
+function getDB() {
+  if (!dbPromise) {
+    dbPromise = openDB(DB_NAME, 2, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('gallery')) {
+          db.createObjectStore('gallery', { keyPath: 'id' })
+        }
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id' })
+        }
+      },
+    })
+  }
+  return dbPromise
 }
 
 export async function saveHistoryEntry(entry: PersistedHistoryEntry): Promise<void> {

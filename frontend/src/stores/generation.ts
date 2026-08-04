@@ -48,14 +48,22 @@ export const useGenerationStore = defineStore('generation', () => {
   }
 
   async function loadHistory() {
-    const entries = await getAllHistory()
-    history.value = entries.map(toHistoryEntry)
+    try {
+      const entries = await getAllHistory()
+      history.value = entries.map(toHistoryEntry)
+    } catch (e) {
+      console.error('[History] Failed to load history from IndexedDB:', e)
+    }
   }
 
-  function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
+  async function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
     const entry = toPersistedEntry(mode, prompt, result)
     history.value.unshift(toHistoryEntry(entry))
-    saveHistoryEntry(entry)
+    try {
+      await saveHistoryEntry(entry)
+    } catch (e) {
+      console.error('[History] Failed to save history entry to IndexedDB:', e)
+    }
   }
 
   async function generateTextToImage(prompt: string, params: Record<string, string | number | boolean>) {
@@ -67,7 +75,7 @@ export const useGenerationStore = defineStore('generation', () => {
     loading.value = true; error.value = null; textResults.value = null
     try {
       textResults.value = await adapter.textToImage({ prompt, config: profile.config, params })
-      pushHistory('text-to-image', prompt, textResults.value)
+      await pushHistory('text-to-image', prompt, textResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
     } finally { loading.value = false }
@@ -82,7 +90,7 @@ export const useGenerationStore = defineStore('generation', () => {
     loading.value = true; error.value = null; imageResults.value = null
     try {
       imageResults.value = await adapter.imageToImage({ prompt, config: profile.config, params, images })
-      pushHistory('image-to-image', prompt, imageResults.value)
+      await pushHistory('image-to-image', prompt, imageResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
     } finally { loading.value = false }
