@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -58,5 +59,62 @@ func TestProxy_AllowsCORSPreflight(t *testing.T) {
 	}
 	if rec.Header().Get("Access-Control-Allow-Headers") == "" {
 		t.Error("expected CORS allow-headers")
+	}
+}
+
+func TestProxyConfig_Get(t *testing.T) {
+	// Reset to default state
+	setProxyConfig(ProxyConfig{Enabled: false})
+	
+	req := httptest.NewRequest("GET", "/api/proxy/config", nil)
+	rec := httptest.NewRecorder()
+	handleProxyConfig(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	
+	var config ProxyConfig
+	if err := json.Unmarshal(rec.Body.Bytes(), &config); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+	if config.Enabled != false {
+		t.Errorf("expected enabled=false, got %v", config.Enabled)
+	}
+}
+
+func TestProxyConfig_Post(t *testing.T) {
+	reqBody := `{"enabled":true,"host":"127.0.0.1","port":8888}`
+	req := httptest.NewRequest("POST", "/api/proxy/config", strings.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	handleProxyConfig(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	
+	config := getProxyConfig()
+	if config.Enabled != true {
+		t.Errorf("expected enabled=true, got %v", config.Enabled)
+	}
+	if config.Host != "127.0.0.1" {
+		t.Errorf("expected host=127.0.0.1, got %v", config.Host)
+	}
+	if config.Port != 8888 {
+		t.Errorf("expected port=8888, got %v", config.Port)
+	}
+	
+	// Reset
+	setProxyConfig(ProxyConfig{Enabled: false})
+}
+
+func TestProxyConfig_CORS(t *testing.T) {
+	req := httptest.NewRequest("OPTIONS", "/api/proxy/config", nil)
+	rec := httptest.NewRecorder()
+	handleProxyConfig(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("expected 204, got %d", rec.Code)
 	}
 }

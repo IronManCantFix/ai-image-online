@@ -73,6 +73,33 @@
       </div>
     </div>
 
+    <!-- HTTP 代理配置 -->
+    <div class="mt-6 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300">HTTP 代理设置</h3>
+      <p class="text-xs text-slate-400">如果需要通过代理访问 API，请在此配置</p>
+      
+      <div class="flex items-center gap-3">
+        <n-switch v-model:value="proxyConfig.enabled" @update:value="saveProxy" />
+        <span class="text-sm text-slate-600 dark:text-slate-300">启用 HTTP 代理</span>
+      </div>
+      
+      <template v-if="proxyConfig.enabled">
+        <div>
+          <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">代理地址</label>
+          <n-input v-model:value="proxyConfig.host" size="small" placeholder="127.0.0.1" @update:value="saveProxy" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">代理端口</label>
+          <n-input-number v-model:value="proxyConfig.port" size="small" :min="1" :max="65535" placeholder="7890" @update:value="saveProxy" />
+        </div>
+      </template>
+      
+      <div class="flex items-center gap-3 pt-1">
+        <n-button size="small" type="primary" @click="applyProxy">应用代理</n-button>
+        <n-text v-if="proxyStatus" :type="proxyStatus.ok ? 'success' : 'error'" class="text-sm">{{ proxyStatus.message }}</n-text>
+      </div>
+    </div>
+
     <n-modal v-model:show="showAddModal" preset="card" title="新建提供商" class="max-w-md">
       <div class="space-y-3">
         <div>
@@ -114,9 +141,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { NInput, NButton, NModal, NText } from 'naive-ui'
+import { NInput, NButton, NModal, NText, NSwitch, NInputNumber } from 'naive-ui'
 import { useSettingsStore } from '@/stores/settings'
 import { getAdapter } from '@/adapters/registry'
 import { useConnectionTest } from '@/composables/useConnectionTest'
@@ -130,9 +157,72 @@ const showKey = ref(false)
 const showNewKey = ref(false)
 const newProfile = ref({ name: '', endpoint: '', apiKey: '', model: 'gpt-image-2' })
 
+interface ProxyConfig {
+  enabled: boolean
+  host: string
+  port: number
+}
+
+const proxyConfig = ref<ProxyConfig>({ enabled: false, host: '', port: 7890 })
+const proxyStatus = ref<{ ok: boolean; message: string } | null>(null)
+
+onMounted(async () => {
+  // 从 localStorage 加载代理配置
+  const saved = localStorage.getItem('proxy-config')
+  if (saved) {
+    try {
+      const config = JSON.parse(saved)
+      proxyConfig.value = {
+        enabled: config.enabled || false,
+        host: config.host || '',
+        port: config.port || 7890
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  
+  // 如果代理已启用，尝试应用
+  if (proxyConfig.value.enabled && proxyConfig.value.host) {
+    await applyProxyToServer()
+  }
+})
+
 function selectProfile(id: string) { store.setActiveProfile(id) }
 function save() { if (activeProfile.value) store.updateProfile(activeProfile.value.id, { config: { ...activeProfile.value.config } }) }
 function runTest() { if (activeProfile.value) test(activeProfile.value.config.endpoint, activeProfile.value.config.apiKey, activeProfile.value.config.model) }
+
+function saveProxy() {
+  localStorage.setItem('proxy-config', JSON.stringify(proxyConfig.value))
+}
+
+async function applyProxy() {
+  await applyProxyToServer()
+}
+
+async function applyProxyToServer() {
+  try {
+    const resp = await fetch('/api/proxy/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        enabled: proxyConfig.value.enabled,
+        host: proxyConfig.value.host,
+        port: proxyConfig.value.port
+      })
+    })
+    
+    if (resp.ok) {
+      proxyStatus.value = { ok: true, message: '代理配置已应用' }
+    } else {
+      proxyStatus.value = { ok: false, message: '应用失败' }
+    }
+  } catch (e) {
+    proxyStatus.value = { ok: false, message: '连接服务器失败' }
+  }
+  
+  setTimeout(() => { proxyStatus.value = null }, 3000)
+}
 
 function addProfile() {
   if (!newProfile.value.name.trim()) return

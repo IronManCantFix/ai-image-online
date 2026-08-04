@@ -6,12 +6,90 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
-var proxyClient = &http.Client{
-	Timeout: 300 * time.Second,
+type ProxyConfig struct {
+	Enabled  bool   `json:"enabled"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+}
+
+var (
+	proxyConfig     ProxyConfig
+	proxyConfigMu   sync.RWMutex
+	proxyClient     *http.Client
+	proxyConfigured bool
+)
+
+func init() {
+	// Default: no proxy
+	proxyConfig = ProxyConfig{Enabled: false}
+	proxyClient = &http.Client{Timeout: 300 * time.Second}
+}
+
+func getProxyConfig() ProxyConfig {
+	proxyConfigMu.RLock()
+	defer proxyConfigMu.RUnlock()
+	return proxyConfig
+}
+
+func setProxyConfig(config ProxyConfig) {
+	proxyConfigMu.Lock()
+	defer proxyConfigMu.Unlock()
+	proxyConfig = config
+	proxyConfigured = config.Enabled && config.Host != "" && config.Port > 0
+	if proxyConfigured {
+		proxyURL := fmt.Sprintf("http://%s:%d", config.Host, config.Port)
+		transport := &http.Transport{
+			Proxy: http.ProxyURL(&url.URL{
+				Scheme: "http",
+				Host:   fmt.Sprintf("%s:%d", config.Host, config.Port),
+			}),
+		}
+		proxyClient = &http.Client{
+			Timeout:   300 * time.Second,
+			Transport: transport,
+		}
+		log.Printf("[PROXY] HTTP proxy enabled: %s", proxyURL)
+	} else {
+		proxyClient = &http.Client{Timeout: 300 * time.Second}
+		log.Printf("[PROXY] HTTP proxy disabled")
+	}
+}
+
+func handleProxyConfig(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		setCORSHeaders(w)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		setCORSHeaders(w)
+		w.Header().Set("Content-Type", "application/json")
+		config := getProxyConfig()
+		json.NewEncoder(w).Encode(config)
+
+	case http.MethodPost:
+		var config ProxyConfig
+		body, _ := io.ReadAll(r.Body)
+		if err := json.Unmarshal(body, &config); err != nil {
+			http.Error(w, `{"error":"invalid JSON"}`, http.StatusBadRequest)
+			return
+		}
+		setProxyConfig(config)
+		setCORSHeaders(w)
+		w.Header().Set("Content-Type", "application/json")
+		io.WriteString(w, `{"status":"ok"}`)
+
+	default:
+		http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+	}
 }
 
 func handleProxy(w http.ResponseWriter, r *http.Request) {

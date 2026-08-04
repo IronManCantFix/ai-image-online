@@ -16,6 +16,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/proxy", handleProxy)
+	mux.HandleFunc("/api/proxy/config", handleProxyConfig)
 	mux.HandleFunc("/api/health", handleHealth)
 
 	staticDir := "./static"
