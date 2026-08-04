@@ -8,3 +8,5 @@ maintainer            = huanghongda
 distributor           = huanghongda
 desktop_uidir         = ui
 desktop_applaunchname = ai-image-online.Application
+service_port          = 19090
+checkport             = true

@@ -50,9 +50,10 @@ func handleProxy(w http.ResponseWriter, r *http.Request) {
 	for key, value := range forwardHeaders {
 		proxyReq.Header.Set(key, value)
 	}
+	if ct := r.Header.Get("Content-Type"); ct != "" {
+		proxyReq.Header.Set("Content-Type", ct)
+	}
 	proxyReq.Header.Set("Host", proxyReq.URL.Host)
-
-	log.Printf("[PROXY] headers: %v", forwardHeaders)
 
 	resp, err := proxyClient.Do(proxyReq)
 	if err != nil {

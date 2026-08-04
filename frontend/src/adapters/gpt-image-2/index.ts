@@ -35,7 +35,7 @@ export const gptImage2Adapter: ImageAdapter = {
   name: 'GPT Image 2',
   features: ['text-to-image', 'image-to-image'],
   defaultConfig: {
-    endpoint: 'https://www.dreamfield.top/v1',
+    endpoint: '',
     model: 'gpt-image-2',
   },
   getParamSchema() {
@@ -70,8 +70,6 @@ export const gptImage2Adapter: ImageAdapter = {
     formData.append('prompt', params.prompt)
     formData.append('n', String(p.n))
     formData.append('size', p.size)
-    formData.append('quality', p.quality)
-    formData.append('resolution', p.resolution)
     params.images.forEach((file) => formData.append('image', file))
     if (params.mask) formData.append('mask', params.mask)
 

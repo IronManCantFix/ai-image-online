@@ -1,11 +1,11 @@
 {
     ".url": {
         "ai-image-online.Application": {
-            "title": "{display_name}",
+            "title": "AI Image Online",
             "icon": "images/icon_{0}.png",
             "type": "url",
             "protocol": "http",
-            "port": "{port}",
+            "port": "19090",
             "url": "/",
             "allUsers": false
         }

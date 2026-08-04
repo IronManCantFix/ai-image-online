@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, toRaw } from 'vue'
 import { saveToGallery, getAllFromGallery, deleteFromGallery, clearGallery, type GalleryItem } from '@/composables/useImageStorage'
 import type { GenResultImage } from '@/adapters/types'
 
@@ -33,7 +33,8 @@ export const useGalleryStore = defineStore('gallery', () => {
       createdAt: Date.now(),
       apiConfig: payload.apiConfig,
     }
-    await saveToGallery(item)
+    const rawItem = { ...toRaw(item), params: JSON.parse(JSON.stringify(toRaw(item.params))) }
+    await saveToGallery(rawItem)
     items.value.unshift(item)
   }
 

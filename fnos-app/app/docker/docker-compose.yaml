@@ -1,11 +1,9 @@
-version: "3.8"
-
 services:
   ai-image-online:
-    image: ai-image-online:latest
+    image: ghcr.io/ironmancantfix/ai-image-online:main
     container_name: ai-image-online
     ports:
-      - "{host_port}:19090"
+      - "19090:8080"
     volumes:
       - "/var/apps/ai-image-online/data:/app/data"
     environment:

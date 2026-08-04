@@ -13,3 +13,4 @@ server/static/
 .vscode/
 .idea/
 data/
+*.fpk
