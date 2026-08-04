@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "idb": "^8.0.0",
+    "naive-ui": "^2.44.1",
     "pinia": "^2.1.7",
-    "vant": "^4.10.0",
     "vue": "^3.4.0",
     "vue-router": "^4.3.0"
   },

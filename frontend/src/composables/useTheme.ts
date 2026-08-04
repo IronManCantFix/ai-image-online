@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { darkTheme, type GlobalTheme } from 'naive-ui'
 
 type Theme = 'light' | 'dark'
 
@@ -30,5 +31,11 @@ function toggleTheme() {
 watch(theme, (t) => applyTheme(t))
 
 export function useTheme() {
-  return { theme, toggleTheme, loadTheme }
+  const naiveTheme = ref<GlobalTheme | null>(null)
+
+  watch(theme, (t) => {
+    naiveTheme.value = t === 'dark' ? darkTheme : null
+  }, { immediate: true })
+
+  return { theme, naiveTheme, toggleTheme, loadTheme }
 }

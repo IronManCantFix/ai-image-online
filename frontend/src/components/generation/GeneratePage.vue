@@ -1,11 +1,14 @@
 <template>
   <div>
     <div class="mb-4">
-      <label class="block text-xs text-slate-400 dark:text-slate-600 mb-1">提供商</label>
-      <select v-model="store.activeProfileId" @change="store.setActiveProfile(store.activeProfileId)"
-        class="w-full sm:max-w-[240px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer min-h-[40px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-colors">
-        <option v-for="p in store.profiles" :key="p.id" :value="p.id">{{ p.name }}</option>
-      </select>
+      <label class="block text-xs text-slate-400 dark:text-slate-600 mb-1.5">提供商</label>
+      <n-select
+        v-model:value="selectedProfileId"
+        :options="profileOptions"
+        size="small"
+        class="max-w-[280px]"
+        @update:value="onProfileChange"
+      />
     </div>
 
     <div class="flex gap-1 mb-5 border-b border-slate-200 dark:border-slate-800">
@@ -32,6 +35,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { NSelect } from 'naive-ui'
 import { useSettingsStore } from '@/stores/settings'
 import type { GenResultImage } from '@/adapters/types'
 import TextToImage from './TextToImage.vue'
@@ -43,6 +47,16 @@ const mode = ref<'text' | 'image'>('text')
 const previewImage = ref<GenResultImage | null>(null)
 const tabs = [{ id: 'text' as const, label: '文生图' }, { id: 'image' as const, label: '图生图' }]
 const hasApiKey = computed(() => !!store.activeProfile?.config.apiKey)
+
+const selectedProfileId = ref(store.activeProfileId)
+const profileOptions = computed(() =>
+  store.profiles.map(p => ({ label: p.name, value: p.id }))
+)
+
+function onProfileChange(val: string) {
+  store.setActiveProfile(val)
+}
+
 function onPreview(img: GenResultImage) { previewImage.value = img }
 function onSaved() {}
 </script>
