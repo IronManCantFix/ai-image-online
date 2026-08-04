@@ -5,14 +5,9 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">提示词 (Prompt)</label>
-        <van-field
-          v-model="prompt"
-          type="textarea"
-          rows="3"
-          autosize
-          placeholder="描述你想基于参考图片生成的内容..."
-          class="!bg-white !rounded-lg !border !border-gray-200"
-        />
+        <textarea v-model="prompt" rows="3" placeholder="描述你想基于参考图片生成的内容..."
+          class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm resize-y bg-white
+          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[80px]"></textarea>
       </div>
 
       <div class="lg:block">
@@ -29,13 +24,9 @@
         </div>
       </div>
 
-      <van-button v-if="isMobile" type="primary" block round :disabled="gen.loading || !prompt.trim() || images.length === 0" :loading="gen.loading"
-        loading-text="生成中..." @click="generate">
-        生成图片
-      </van-button>
-      <button v-else @click="generate" :disabled="gen.loading || !prompt.trim() || images.length === 0"
-        class="w-full px-4 py-2.5 rounded-lg bg-primary-600 text-white text-sm font-medium
-        hover:bg-primary-700 disabled:opacity-50 transition-colors">
+      <button @click="generate" :disabled="gen.loading || !prompt.trim() || images.length === 0"
+        class="w-full px-4 py-3 rounded-lg bg-primary-600 text-white text-sm font-medium
+        hover:bg-primary-700 disabled:opacity-50 min-h-[48px] transition-colors">
         {{ gen.loading ? '生成中...' : '生成图片' }}
       </button>
     </div>
@@ -57,12 +48,10 @@ import ParamPanel from './ParamPanel.vue'
 import ResultGallery from './ResultGallery.vue'
 import ImageUploader from './ImageUploader.vue'
 import { useGalleryStore } from '@/stores/gallery'
-import { useIsMobile } from '@/composables/useMediaQuery'
 
 const gen = useGenerationStore()
 const settings = useSettingsStore()
 const gallery = useGalleryStore()
-const isMobile = useIsMobile()
 const images = ref<File[]>([])
 const prompt = ref('')
 const params = ref<Record<string, string | number | boolean>>({})
