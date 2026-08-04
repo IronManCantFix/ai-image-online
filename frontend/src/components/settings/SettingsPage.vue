@@ -23,7 +23,7 @@
           </div>
           <n-button v-if="store.profiles.length > 1" size="tiny" quaternary type="error" @click.stop="store.deleteProfile(p.id)">删除</n-button>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="grid grid-cols-3 gap-2 text-xs">
           <div><span class="text-slate-400 dark:text-slate-600">地址</span><p class="text-slate-600 dark:text-slate-300 truncate">{{ p.config.endpoint || '未配置' }}</p></div>
           <div><span class="text-slate-400 dark:text-slate-600">模型</span><p class="text-slate-600 dark:text-slate-300">{{ p.config.model || '未配置' }}</p></div>
           <div><span class="text-slate-400 dark:text-slate-600">Key</span><p :class="p.config.apiKey ? 'text-green-600 dark:text-green-400' : 'text-slate-400'">{{ p.config.apiKey ? '已配置' : '未配置' }}</p></div>
@@ -43,7 +43,25 @@
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">API Key</label>
-        <n-input v-model:value="activeProfile.config.apiKey" size="small" type="password" show-password-toggle-on="click" placeholder="sk-..." @update:value="save" />
+        <div class="relative">
+          <input
+            v-model="activeProfile.config.apiKey"
+            @input="save"
+            :type="showKey ? 'text' : 'password'"
+            placeholder="sk-..."
+            class="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 pr-9 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+          />
+          <button @click="showKey = !showKey" type="button"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer p-1">
+            <svg v-if="!showKey" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A7.962 7.962 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.563 3.029m-5.858-.908a3 3 0 01-4.243-4.243M3 3l18 18" />
+            </svg>
+          </button>
+        </div>
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">模型名称</label>
@@ -55,7 +73,6 @@
       </div>
     </div>
 
-    <!-- 新建提供商弹窗 -->
     <n-modal v-model:show="showAddModal" preset="card" title="新建提供商" class="max-w-md">
       <div class="space-y-3">
         <div>
@@ -68,7 +85,20 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">API Key</label>
-          <n-input v-model:value="newProfile.apiKey" type="password" placeholder="sk-..." />
+          <div class="relative">
+            <input v-model="newProfile.apiKey" :type="showNewKey ? 'text' : 'password'" placeholder="sk-..."
+              class="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 pr-9 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-primary-500/50" />
+            <button @click="showNewKey = !showNewKey" type="button"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1">
+              <svg v-if="!showNewKey" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A7.962 7.962 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.563 3.029m-5.858-.908a3 3 0 01-4.243-4.243M3 3l18 18" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">模型名称</label>
@@ -96,6 +126,8 @@ const { activeProfile } = storeToRefs(store)
 const { testing, testResult, test } = useConnectionTest()
 
 const showAddModal = ref(false)
+const showKey = ref(false)
+const showNewKey = ref(false)
 const newProfile = ref({ name: '', endpoint: '', apiKey: '', model: 'gpt-image-2' })
 
 function selectProfile(id: string) { store.setActiveProfile(id) }
@@ -108,5 +140,6 @@ function addProfile() {
   store.addProfile(newProfile.value.name, a.id, { endpoint: newProfile.value.endpoint, apiKey: newProfile.value.apiKey, model: newProfile.value.model })
   newProfile.value = { name: '', endpoint: '', apiKey: '', model: 'gpt-image-2' }
   showAddModal.value = false
+  showNewKey.value = false
 }
 </script>

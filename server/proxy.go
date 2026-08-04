@@ -2,10 +2,17 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 )
+
+var proxyClient = &http.Client{
+	Timeout: 300 * time.Second,
+}
 
 func handleProxy(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
@@ -29,33 +36,40 @@ func handleProxy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
+	bodyBytes, _ := io.ReadAll(r.Body)
+	log.Printf("[PROXY] %s %s (body=%d bytes)", r.Method, targetURL, len(bodyBytes))
+
+	proxyReq, err := http.NewRequest(r.Method, targetURL, strings.NewReader(string(bodyBytes)))
 	if err != nil {
-		http.Error(w, `{"error":"invalid target URL"}`, http.StatusBadRequest)
+		errMsg := fmt.Sprintf("invalid request: %s", err.Error())
+		log.Printf("[PROXY ERROR] %s", errMsg)
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, errMsg), http.StatusBadRequest)
 		return
 	}
 
 	for key, value := range forwardHeaders {
 		proxyReq.Header.Set(key, value)
 	}
+	proxyReq.Header.Set("Host", proxyReq.URL.Host)
 
-	client := &http.Client{}
-	resp, err := client.Do(proxyReq)
+	log.Printf("[PROXY] headers: %v", forwardHeaders)
+
+	resp, err := proxyClient.Do(proxyReq)
 	if err != nil {
-		log.Printf("proxy error: %v", err)
-		http.Error(w, `{"error":"failed to reach target API"}`, http.StatusBadGateway)
+		errMsg := fmt.Sprintf("target API unreachable: %s", err.Error())
+		log.Printf("[PROXY ERROR] %s -> %s", targetURL, errMsg)
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, errMsg), http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()
 
+	respBody, _ := io.ReadAll(resp.Body)
+	log.Printf("[PROXY] %s -> %d (body=%d bytes)", targetURL, resp.StatusCode, len(respBody))
+
 	setCORSHeaders(w)
-	for key, values := range resp.Header {
-		for _, value := range values {
-			w.Header().Add(key, value)
-		}
-	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	w.Write(respBody)
 }
 
 func setCORSHeaders(w http.ResponseWriter) {
