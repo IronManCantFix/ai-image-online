@@ -1,15 +1,15 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4 sm:mb-6">
-      <h1 class="text-xl sm:text-2xl font-bold text-slate-100">历史画廊</h1>
-      <button v-if="gallery.items.length" @click="confirmClear" class="px-3 py-2 text-sm rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 min-h-[40px] cursor-pointer">清空全部</button>
+    <div class="flex items-center justify-between mb-4 sm:mb-5">
+      <h1 class="text-xl font-bold text-slate-900 dark:text-slate-100">历史画廊</h1>
+      <button v-if="gallery.items.length" @click="confirmClear" class="px-3 py-2 text-sm rounded-xl border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 min-h-[40px] cursor-pointer transition-colors">清空全部</button>
     </div>
-    <div v-if="!gallery.loaded" class="text-center py-20 text-slate-600">加载中...</div>
-    <div v-else-if="gallery.items.length === 0" class="text-center py-20 text-slate-600">
+    <div v-if="!gallery.loaded" class="text-center py-20 text-slate-400 dark:text-slate-600">加载中...</div>
+    <div v-else-if="gallery.items.length === 0" class="text-center py-20 text-slate-400 dark:text-slate-600">
       <p>还没有保存的图片</p><p class="text-sm mt-1">在生成页面点击"保存"即可收藏</p>
     </div>
     <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-      <div v-for="item in gallery.items" :key="item.id" class="relative group rounded-xl overflow-hidden border border-slate-800 bg-slate-900 cursor-pointer" @click="previewItem(item)">
+      <div v-for="item in gallery.items" :key="item.id" class="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 cursor-pointer" @click="previewItem(item)">
         <img :src="getURL(item)" :alt="item.prompt" class="w-full aspect-square object-cover" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
           <p class="text-white text-xs line-clamp-2">{{ item.prompt }}</p>
@@ -20,16 +20,16 @@
         </div>
       </div>
     </div>
-    <div v-if="previewing" @click="previewing = null" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+    <div v-if="previewing" @click="previewing = null" class="fixed inset-0 z-[100] bg-black/80 dark:bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
       <div @click.stop class="relative max-w-[95vw] max-h-[95vh] overflow-auto">
         <img :src="getURL(previewing)" alt="预览" class="max-w-full max-h-[70vh] rounded-xl mx-auto" />
-        <div class="bg-slate-900 rounded-xl mt-2 p-3 sm:p-4">
-          <p class="text-sm text-slate-200 break-all">{{ previewing.prompt }}</p>
-          <div class="flex flex-wrap gap-2 mt-2 text-xs text-slate-500">
+        <div class="bg-white dark:bg-slate-900 rounded-xl mt-2 p-3 sm:p-4">
+          <p class="text-sm text-slate-800 dark:text-slate-200 break-all">{{ previewing.prompt }}</p>
+          <div class="flex flex-wrap gap-2 mt-2 text-xs text-slate-500 dark:text-slate-500">
             <span>{{ previewing.mode === 'text-to-image' ? '文生图' : '图生图' }}</span><span>{{ previewing.apiConfig.model }}</span><span>{{ new Date(previewing.createdAt).toLocaleString() }}</span>
           </div>
         </div>
-        <button @click="previewing = null" class="absolute top-2 right-2 w-9 h-9 bg-white/10 text-white rounded-full flex items-center justify-center text-xl hover:bg-white/20 backdrop-blur cursor-pointer">×</button>
+        <button @click="previewing = null" class="absolute top-2 right-2 w-8 h-8 bg-white/10 text-white rounded-full flex items-center justify-center text-xl hover:bg-white/20 backdrop-blur cursor-pointer">×</button>
       </div>
     </div>
   </div>

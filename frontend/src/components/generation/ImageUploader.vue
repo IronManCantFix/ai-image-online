@@ -1,18 +1,18 @@
 <template>
   <div>
-    <label class="block text-sm font-medium text-slate-300 mb-1.5">参考图片</label>
+    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">参考图片</label>
     <div @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false" @drop.prevent="onDrop"
-      class="border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-colors cursor-pointer min-h-[120px] flex items-center justify-center"
-      :class="dragOver ? 'border-primary-500 bg-primary-500/5' : 'border-slate-700 hover:border-slate-600'"
+      class="border-2 border-dashed rounded-xl p-3 text-center transition-colors cursor-pointer min-h-[80px] flex items-center justify-center"
+      :class="dragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/5' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'"
       @click="fileInput?.click()">
       <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFileSelect" />
       <div v-if="images.length === 0">
-        <p class="text-slate-500 text-sm">点击或拖拽图片到此处上传</p>
-        <p class="text-slate-700 text-xs mt-1">支持多张图片</p>
+        <p class="text-slate-400 dark:text-slate-600 text-sm">点击或拖拽图片到此处上传</p>
+        <p class="text-slate-300 dark:text-slate-700 text-xs mt-0.5">支持多张图片</p>
       </div>
       <div v-else class="flex flex-wrap gap-2 justify-center">
         <div v-for="(img, i) in previewUrls" :key="i" class="relative">
-          <img :src="img" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border border-slate-700" />
+          <img :src="img" class="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg border border-slate-200 dark:border-slate-700" />
           <button @click.stop="removeImage(i)" class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center min-w-[20px] cursor-pointer">×</button>
         </div>
       </div>

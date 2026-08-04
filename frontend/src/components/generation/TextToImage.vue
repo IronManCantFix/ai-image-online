@@ -1,16 +1,14 @@
 <template>
-  <div class="flex flex-col lg:grid lg:grid-cols-[340px_1fr] gap-4 lg:gap-6">
-    <div class="space-y-4">
+  <div class="flex flex-col lg:grid lg:grid-cols-[300px_1fr] gap-4 lg:gap-5">
+    <div class="space-y-3">
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-1.5">提示词 (Prompt)</label>
-        <textarea v-model="prompt" rows="4" placeholder="描述你想要生成的图片..."
-          class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-600 resize-y
-          focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 min-h-[100px] transition-colors"></textarea>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">提示词 (Prompt)</label>
+        <textarea v-model="prompt" rows="3" placeholder="描述你想要生成的图片..."
+          class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-y focus:outline-none focus:ring-2 focus:ring-primary-500/50 min-h-[80px] transition-colors"></textarea>
       </div>
       <ParamPanel :schema="schema" @update="onParamsUpdate" />
       <button @click="generate" :disabled="gen.loading || !prompt.trim()"
-        class="w-full px-4 py-3 rounded-xl bg-primary-600 text-white text-sm font-medium
-        hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed min-h-[48px] transition-colors cursor-pointer">
+        class="w-full px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px] cursor-pointer transition-colors">
         {{ gen.loading ? '生成中...' : '生成图片' }}
       </button>
     </div>
