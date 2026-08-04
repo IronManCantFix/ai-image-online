@@ -1,12 +1,13 @@
+version: "3.8"
+
 services:
   ai-image-online:
-    build: .
     image: ai-image-online:latest
     container_name: ai-image-online
     ports:
-      - "19090:8080"
+      - "{host_port}:19090"
     volumes:
-      - ./data/images:/app/data/images
+      - "/var/apps/ai-image-online/data:/app/data"
     environment:
       - TZ=Asia/Shanghai
       - PORT=8080
