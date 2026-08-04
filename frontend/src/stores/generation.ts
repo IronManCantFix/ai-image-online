@@ -17,7 +17,8 @@ export interface HistoryEntry {
 export const useGenerationStore = defineStore('generation', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
-  const results = ref<GenResult | null>(null)
+  const textResults = ref<GenResult | null>(null)
+  const imageResults = ref<GenResult | null>(null)
   const history = ref<HistoryEntry[]>([])
 
   function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
@@ -37,10 +38,10 @@ export const useGenerationStore = defineStore('generation', () => {
     if (!profile || !profile.config.apiKey) { error.value = '请先在设置页配置 API Key'; return }
     const adapter = getAdapter(profile.adapterId)
     if (!adapter) { error.value = '找不到适配器'; return }
-    loading.value = true; error.value = null; results.value = null
+    loading.value = true; error.value = null; textResults.value = null
     try {
-      results.value = await adapter.textToImage({ prompt, config: profile.config, params })
-      pushHistory('text-to-image', prompt, results.value)
+      textResults.value = await adapter.textToImage({ prompt, config: profile.config, params })
+      pushHistory('text-to-image', prompt, textResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
     } finally { loading.value = false }
@@ -52,16 +53,21 @@ export const useGenerationStore = defineStore('generation', () => {
     if (!profile || !profile.config.apiKey) { error.value = '请先在设置页配置 API Key'; return }
     const adapter = getAdapter(profile.adapterId)
     if (!adapter) { error.value = '找不到适配器'; return }
-    loading.value = true; error.value = null; results.value = null
+    loading.value = true; error.value = null; imageResults.value = null
     try {
-      results.value = await adapter.imageToImage({ prompt, config: profile.config, params, images })
-      pushHistory('image-to-image', prompt, results.value)
+      imageResults.value = await adapter.imageToImage({ prompt, config: profile.config, params, images })
+      pushHistory('image-to-image', prompt, imageResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
     } finally { loading.value = false }
   }
 
-  function clearResults() { results.value = null; error.value = null }
+  function clearResults(mode?: 'text' | 'image') {
+    if (mode === 'text') textResults.value = null
+    else if (mode === 'image') imageResults.value = null
+    else { textResults.value = null; imageResults.value = null }
+    error.value = null
+  }
 
   function removeHistory(id: string) {
     history.value = history.value.filter(h => h.id !== id)
@@ -89,7 +95,7 @@ export const useGenerationStore = defineStore('generation', () => {
   function clearHistory() { history.value = [] }
 
   return {
-    loading, error, results, history,
+    loading, error, textResults, imageResults, history,
     generateTextToImage, generateImageToImage,
     clearResults, removeHistory, removeImageFromHistory, removeImagesFromHistory, clearHistory,
   }

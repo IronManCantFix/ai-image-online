@@ -13,7 +13,7 @@
       </button>
     </div>
     <div>
-      <ResultGallery :loading="gen.loading" :error="gen.error" :results="gen.results"
+      <ResultGallery :loading="gen.loading" :error="gen.error" :results="gen.textResults"
         @preview="onPreview" @save="onSave" />
     </div>
   </div>
