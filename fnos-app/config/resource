@@ -1,0 +1,20 @@
+{
+  "docker-project": {
+    "projects": [
+      {
+        "name": "ai-image-online",
+        "path": "docker"
+      }
+    ]
+  },
+  "data-share": {
+    "shares": [
+      {
+        "name": "ai-image-online"
+      },
+      {
+        "name": "ai-image-online/data"
+      }
+    ]
+  }
+}

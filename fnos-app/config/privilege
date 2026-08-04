@@ -1,0 +1,8 @@
+{
+    "defaults":
+    {
+        "run-as": "package"
+    },
+    "username": "docker-ai-image-online",
+    "groupname": "docker-ai-image-online"
+}

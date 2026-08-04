@@ -1,0 +1,10 @@
+appname               = ai-image-online
+version               = 1.0.0
+display_name          = AI Image Online
+desc                  = AI 图片生成工具，支持文生图和图生图，兼容 GPT Image 2 协议
+platform              = x86
+source                = thirdparty
+maintainer            = huanghongda
+distributor           = huanghongda
+desktop_uidir         = ui
+desktop_applaunchname = ai-image-online.Application
