@@ -20,8 +20,9 @@ function buildVersionPlugin(): Plugin {
       const buildNumber = process.env.BUILD_NUMBER ? Number(process.env.BUILD_NUMBER) : readLocalBuildNumber()
       const buildTime = process.env.BUILD_TIME || new Date().toISOString()
       const gitSha = process.env.GIT_SHA || ''
+      const appVersion = process.env.APP_VERSION || pkg.version
       const define = config.define ? { ...config.define } : {}
-      define.__APP_VERSION__ = JSON.stringify(pkg.version)
+      define.__APP_VERSION__ = JSON.stringify(appVersion)
       define.__BUILD_NUMBER__ = JSON.stringify(buildNumber)
       define.__BUILD_TIME__ = JSON.stringify(buildTime)
       define.__GIT_SHA__ = JSON.stringify(gitSha)

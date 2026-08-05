@@ -43,7 +43,7 @@
             <p class="text-slate-600 dark:text-slate-300 mt-0.5">{{ gitSha || '—' }}</p>
           </div>
         </div>
-        <p class="mt-2 text-xs text-slate-400 dark:text-slate-600">构建号与构建时间由 GitHub Actions 每次构建自动生成，提交号对应本次部署的代码版本。</p>
+        <p class="mt-2 text-xs text-slate-400 dark:text-slate-600">版本号：发布时取 Git tag；日常构建为 package.json 版本 + 构建号与提交号。构建号与构建时间由 GitHub Actions 每次构建自动生成。</p>
       </div>
 
       <div>

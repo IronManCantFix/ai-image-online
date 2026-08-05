@@ -44,7 +44,18 @@ jobs:
 
     - name: Generate build metadata
       id: meta_build
-      run: echo "build_time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+      run: |
+        echo "build_time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+        SHORT_SHA="${GITHUB_SHA:0:7}"
+        if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+          # 发版：版本号直接取 tag（如 v0.1.0 -> 0.1.0）
+          APP_VERSION="${GITHUB_REF#refs/tags/v}"
+        else
+          # 日常构建：package.json 版本 + 构建号与提交号
+          PKG_VERSION=$(node -p "require('./frontend/package.json').version")
+          APP_VERSION="${PKG_VERSION}+build.${GITHUB_RUN_NUMBER}.${SHORT_SHA}"
+        fi
+        echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
 
     - name: Build and push Docker image
       id: build
@@ -56,6 +67,7 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
+          APP_VERSION=${{ steps.meta_build.outputs.app_version }}
           BUILD_NUMBER=${{ github.run_number }}
           BUILD_TIME=${{ steps.meta_build.outputs.build_time }}
           GIT_SHA=${{ github.sha }}
