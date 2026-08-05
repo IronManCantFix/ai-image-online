@@ -15,29 +15,30 @@ async function parseImageFromResponse(
   try {
     data = JSON.parse(body)
   } catch {
-    // Response is not JSON, wrap it as raw
     return { images: [], raw: { _raw_text: body } }
   }
 
   const obj = data as Record<string, unknown>
   const images: GenResultImage[] = []
-  const items = (obj.data || obj.images || obj.results || []) as Record<string, unknown>[]
+  // Find the items array: check data > images > results
+  const rawItems = obj.data ?? obj.images ?? obj.results
+  const items: unknown[] = Array.isArray(rawItems) ? rawItems : []
 
   for (const item of items) {
     try {
-      if (item.b64_json) {
-        const byteString = atob(item.b64_json as string)
-        const bytes = new Uint8Array(byteString.length)
-        for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i)
-        const blob = new Blob([bytes], { type: 'image/png' })
-        images.push({ data: blob, mimeType: 'image/png', url: URL.createObjectURL(blob) })
-      } else if (item.url) {
-        // Fetch through image proxy to avoid CORS
-        const blob = await fetchImageViaProxy(item.url as string)
+      const entry = (typeof item === 'object' && item !== null ? item : {}) as Record<string, unknown>
+      // Extract the image value: b64_json > url > b64 > base64 > the item itself if it is a string
+      const val = (entry.b64_json || entry.url || entry.b64 || entry.base64 || (typeof item === 'string' ? item : null)) as string | null
+      if (!val) continue
+
+      const isUrl = /^https?:\/\//.test(val)
+      if (isUrl) {
+        // URL → download via image proxy to avoid CORS
+        const blob = await fetchImageViaProxy(val)
         images.push({ data: blob, mimeType: blob.type || 'image/png', url: URL.createObjectURL(blob) })
-      } else if (item.b64 || item.base64) {
-        const b64 = (item.b64 || item.base64) as string
-        const byteString = atob(b64)
+      } else {
+        // Not a URL → treat as base64
+        const byteString = atob(val)
         const bytes = new Uint8Array(byteString.length)
         for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i)
         const blob = new Blob([bytes], { type: 'image/png' })
