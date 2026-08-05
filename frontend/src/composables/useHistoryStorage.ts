@@ -1,7 +1,5 @@
-import { openDB, type IDBPDatabase } from 'idb'
-import type { GenResultImage } from '@/adapters/types'
+import { getDB } from './db'
 
-const DB_NAME = 'ai-image-online'
 const STORE_NAME = 'history'
 const HISTORY_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
@@ -12,24 +10,6 @@ export interface PersistedHistoryEntry {
   images: { data: Blob; mimeType: string }[]
   raw?: unknown
   createdAt: number
-}
-
-let dbPromise: Promise<IDBPDatabase> | null = null
-
-function getDB() {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, 2, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains('gallery')) {
-          db.createObjectStore('gallery', { keyPath: 'id' })
-        }
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-        }
-      },
-    })
-  }
-  return dbPromise
 }
 
 export async function saveHistoryEntry(entry: PersistedHistoryEntry): Promise<void> {

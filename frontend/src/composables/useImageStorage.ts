@@ -1,25 +1,4 @@
-import { openDB, type IDBPDatabase } from 'idb'
-
-const DB_NAME = 'ai-image-online'
-const STORE_NAME = 'gallery'
-
-let dbPromise: Promise<IDBPDatabase> | null = null
-
-function getDB() {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, 2, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-        }
-        if (!db.objectStoreNames.contains('history')) {
-          db.createObjectStore('history', { keyPath: 'id' })
-        }
-      },
-    })
-  }
-  return dbPromise
-}
+import { getDB } from './db'
 
 export interface GalleryItem {
   id: string
@@ -35,21 +14,21 @@ export interface GalleryItem {
 
 export async function saveToGallery(item: GalleryItem): Promise<void> {
   const db = await getDB()
-  await db.put(STORE_NAME, item)
+  await db.put('gallery', item)
 }
 
 export async function getAllFromGallery(): Promise<GalleryItem[]> {
   const db = await getDB()
-  const all = await db.getAll(STORE_NAME)
+  const all = await db.getAll('gallery')
   return all.sort((a, b) => b.createdAt - a.createdAt)
 }
 
 export async function deleteFromGallery(id: string): Promise<void> {
   const db = await getDB()
-  await db.delete(STORE_NAME, id)
+  await db.delete('gallery', id)
 }
 
 export async function clearGallery(): Promise<void> {
   const db = await getDB()
-  await db.clear(STORE_NAME)
+  await db.clear('gallery')
 }
