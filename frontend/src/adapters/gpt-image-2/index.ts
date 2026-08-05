@@ -2,18 +2,35 @@ import type { ImageAdapter, GenParams, EditParams, GenResult, GenResultImage } f
 import { gptImage2Schema } from './schema'
 import { useProxy } from '@/composables/useProxy'
 
-async function fetchImageBlob(imageUrl: string): Promise<Blob | null> {
-  // 1. Try direct fetch (works if server supports CORS)
+async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), ms)
   try {
-    const resp = await fetch(imageUrl)
+    return await fetch(url, { signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function fetchImageBlob(imageUrl: string): Promise<Blob | null> {
+  // 1. Try direct fetch with 5s timeout (works if server supports CORS)
+  try {
+    const resp = await fetchWithTimeout(imageUrl, 5000)
     if (resp.ok) return await resp.blob()
-  } catch { /* CORS blocked, try proxy */ }
+  } catch { /* timeout or CORS blocked */ }
   // 2. Fallback: fetch via server proxy
   try {
     const resp = await fetch('/api/image-proxy?url=' + encodeURIComponent(imageUrl))
     if (resp.ok) return await resp.blob()
   } catch { /* proxy also failed */ }
   return null
+}
+
+function b64ToBlob(b64: string): Blob {
+  const byteString = atob(b64)
+  const bytes = new Uint8Array(byteString.length)
+  for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i)
+  return new Blob([bytes], { type: 'image/png' })
 }
 
 async function parseImageFromResponse(
@@ -27,40 +44,37 @@ async function parseImageFromResponse(
   }
 
   const obj = data as Record<string, unknown>
-  const images: GenResultImage[] = []
-  // Find the items array: check data > images > results
   const rawItems = obj.data ?? obj.images ?? obj.results
   const items: unknown[] = Array.isArray(rawItems) ? rawItems : []
 
+  // Extract all image values first
+  const entries: { val: string; isUrl: boolean }[] = []
   for (const item of items) {
     try {
       const entry = (typeof item === 'object' && item !== null ? item : {}) as Record<string, unknown>
-      // Extract the image value: b64_json > url > b64 > base64 > the item itself if it is a string
       const val = (entry.b64_json || entry.url || entry.b64 || entry.base64 || (typeof item === 'string' ? item : null)) as string | null
       if (!val) continue
-
-      const isUrl = /^https?:\/\//.test(val)
-      if (isUrl) {
-        // Try to get blob for persistence, but always show image immediately
-        const blob = await fetchImageBlob(val)
-        if (blob) {
-          images.push({ data: blob, mimeType: blob.type || 'image/png', url: URL.createObjectURL(blob) })
-        } else {
-          // Blob fetch failed, use original URL directly for display
-          const emptyBlob = new Blob([], { type: 'image/png' })
-          images.push({ data: emptyBlob, mimeType: 'image/png', url: val })
-        }
-      } else {
-        // Not a URL → treat as base64
-        const byteString = atob(val)
-        const bytes = new Uint8Array(byteString.length)
-        for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i)
-        const blob = new Blob([bytes], { type: 'image/png' })
-        images.push({ data: blob, mimeType: 'image/png', url: URL.createObjectURL(blob) })
-      }
+      entries.push({ val, isUrl: /^https?:\/\//.test(val) })
     } catch (e) {
-      console.warn('[ImageAdapter] Failed to parse image item:', e, item)
+      console.warn('[ImageAdapter] Failed to extract image item:', e)
     }
+  }
+
+  // Resolve all images in parallel
+  const results = await Promise.allSettled(entries.map(async ({ val, isUrl }): Promise<GenResultImage> => {
+    if (isUrl) {
+      const blob = await fetchImageBlob(val)
+      if (blob) return { data: blob, mimeType: blob.type || 'image/png', url: URL.createObjectURL(blob) }
+      return { data: new Blob([], { type: 'image/png' }), mimeType: 'image/png', url: val }
+    }
+    const blob = b64ToBlob(val)
+    return { data: blob, mimeType: 'image/png', url: URL.createObjectURL(blob) }
+  }))
+
+  const images: GenResultImage[] = []
+  for (const r of results) {
+    if (r.status === 'fulfilled') images.push(r.value)
+    else console.warn('[ImageAdapter] Failed to resolve image:', r.reason)
   }
 
   return { images, raw: data }
