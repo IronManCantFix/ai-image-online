@@ -63,3 +63,4 @@ docker run -d -p 8080:8080 -v /vol1/@appdata/ai-image-online:/app/data --name ai
 - PC/移动端响应式
 - 图片下载
 - 原始 API 响应查看
+- 关于页面（开源地址、构建版本号，每次构建自动 +1）

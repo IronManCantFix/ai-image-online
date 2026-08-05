@@ -62,6 +62,7 @@ const navItems = [
   { path: '/gallery', label: '画廊' },
   { path: '/history', label: '历史' },
   { path: '/settings', label: '设置' },
+  { path: '/about', label: '关于' },
 ]
 </script>
 

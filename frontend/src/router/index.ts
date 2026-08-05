@@ -6,6 +6,7 @@ const routes = [
   { path: '/gallery', name: 'gallery', component: () => import('@/components/gallery/GalleryPage.vue') },
   { path: '/history', name: 'history', component: () => import('@/components/history/HistoryPage.vue') },
   { path: '/settings', name: 'settings', component: () => import('@/components/settings/SettingsPage.vue') },
+  { path: '/about', name: 'about', component: () => import('@/components/about/AboutPage.vue') },
 ]
 
 export const router = createRouter({ history: createWebHistory(), routes })
