@@ -25,7 +25,7 @@
 
       <div>
         <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">版本信息</h2>
-        <div class="grid grid-cols-3 gap-2 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
           <div>
             <span class="text-slate-400 dark:text-slate-600">版本号</span>
             <p class="text-slate-600 dark:text-slate-300 mt-0.5">v{{ appVersion }}</p>
@@ -38,8 +38,12 @@
             <span class="text-slate-400 dark:text-slate-600">构建时间</span>
             <p class="text-slate-600 dark:text-slate-300 mt-0.5">{{ buildTime }}</p>
           </div>
+          <div>
+            <span class="text-slate-400 dark:text-slate-600">提交号</span>
+            <p class="text-slate-600 dark:text-slate-300 mt-0.5">{{ gitSha || '—' }}</p>
+          </div>
         </div>
-        <p class="mt-2 text-xs text-slate-400 dark:text-slate-600">构建号在每次构建时自动 +1，遇到问题时可据此确认当前部署的版本。</p>
+        <p class="mt-2 text-xs text-slate-400 dark:text-slate-600">构建号与构建时间由 GitHub Actions 每次构建自动生成，提交号对应本次部署的代码版本。</p>
       </div>
 
       <div>
@@ -63,5 +67,6 @@
 const repoUrl = 'https://github.com/IronManCantFix/ai-image-online'
 const appVersion = __APP_VERSION__
 const buildVersion = __BUILD_NUMBER__
-const buildTime = __BUILD_TIME__.replace('T', ' ').slice(0, 16)
+const buildTime = new Date(__BUILD_TIME__).toLocaleString('zh-CN', { hour12: false })
+const gitSha = __GIT_SHA__ ? __GIT_SHA__.slice(0, 7) : ''
 </script>

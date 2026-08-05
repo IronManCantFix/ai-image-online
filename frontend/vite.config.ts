@@ -1,29 +1,30 @@
 import { fileURLToPath, URL } from 'node:url'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-// 构建版本号：每次 build 自动 +1，写入 build-version.txt 以便排查问题时确认版本
+// 构建元数据：优先取 CI 环境变量（GitHub Actions 自动注入），本地构建回退到 build-version.txt
 const versionFile = fileURLToPath(new URL('./build-version.txt', import.meta.url))
 const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf-8'))
+
+function readLocalBuildNumber(): number {
+  if (existsSync(versionFile)) return parseInt(readFileSync(versionFile, 'utf-8').trim(), 10) || 0
+  return 0
+}
 
 function buildVersionPlugin(): Plugin {
   return {
     name: 'build-version',
-    config(config, env) {
-      let buildNumber = 0
-      if (existsSync(versionFile)) {
-        buildNumber = parseInt(readFileSync(versionFile, 'utf-8').trim(), 10) || 0
-      }
-      if (env.command === 'build') {
-        buildNumber += 1
-        writeFileSync(versionFile, String(buildNumber))
-      }
+    config(config) {
+      const buildNumber = process.env.BUILD_NUMBER ? Number(process.env.BUILD_NUMBER) : readLocalBuildNumber()
+      const buildTime = process.env.BUILD_TIME || new Date().toISOString()
+      const gitSha = process.env.GIT_SHA || ''
       const define = config.define ? { ...config.define } : {}
       define.__APP_VERSION__ = JSON.stringify(pkg.version)
       define.__BUILD_NUMBER__ = JSON.stringify(buildNumber)
-      define.__BUILD_TIME__ = JSON.stringify(new Date().toISOString())
+      define.__BUILD_TIME__ = JSON.stringify(buildTime)
+      define.__GIT_SHA__ = JSON.stringify(gitSha)
       return { define }
     },
   }

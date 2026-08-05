@@ -1,9 +1,13 @@
 # Stage 1: 构建前端
 FROM node:20-alpine AS frontend-builder
+ARG BUILD_NUMBER=0
+ARG BUILD_TIME=
+ARG GIT_SHA=
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
+ENV BUILD_NUMBER=$BUILD_NUMBER BUILD_TIME=$BUILD_TIME GIT_SHA=$GIT_SHA
 RUN npm run build
 
 # Stage 2: 构建后端
