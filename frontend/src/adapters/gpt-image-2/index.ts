@@ -2,10 +2,18 @@ import type { ImageAdapter, GenParams, EditParams, GenResult, GenResultImage } f
 import { gptImage2Schema } from './schema'
 import { useProxy } from '@/composables/useProxy'
 
-async function fetchImageViaProxy(imageUrl: string): Promise<Blob> {
-  const resp = await fetch('/api/image-proxy?url=' + encodeURIComponent(imageUrl))
-  if (!resp.ok) throw new Error(`图片下载失败 (${resp.status})`)
-  return await resp.blob()
+async function fetchImageBlob(imageUrl: string): Promise<Blob | null> {
+  // 1. Try direct fetch (works if server supports CORS)
+  try {
+    const resp = await fetch(imageUrl)
+    if (resp.ok) return await resp.blob()
+  } catch { /* CORS blocked, try proxy */ }
+  // 2. Fallback: fetch via server proxy
+  try {
+    const resp = await fetch('/api/image-proxy?url=' + encodeURIComponent(imageUrl))
+    if (resp.ok) return await resp.blob()
+  } catch { /* proxy also failed */ }
+  return null
 }
 
 async function parseImageFromResponse(
@@ -33,9 +41,15 @@ async function parseImageFromResponse(
 
       const isUrl = /^https?:\/\//.test(val)
       if (isUrl) {
-        // URL → download via image proxy to avoid CORS
-        const blob = await fetchImageViaProxy(val)
-        images.push({ data: blob, mimeType: blob.type || 'image/png', url: URL.createObjectURL(blob) })
+        // Try to get blob for persistence, but always show image immediately
+        const blob = await fetchImageBlob(val)
+        if (blob) {
+          images.push({ data: blob, mimeType: blob.type || 'image/png', url: URL.createObjectURL(blob) })
+        } else {
+          // Blob fetch failed, use original URL directly for display
+          const emptyBlob = new Blob([], { type: 'image/png' })
+          images.push({ data: emptyBlob, mimeType: 'image/png', url: val })
+        }
       } else {
         // Not a URL → treat as base64
         const byteString = atob(val)
