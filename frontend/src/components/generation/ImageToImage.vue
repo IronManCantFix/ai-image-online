@@ -54,6 +54,12 @@ async function onSave(img: GenResultImage, _index: number) {
       alert('请先配置 API Key')
       return
     }
+    const histEntry = gen.history.find(h => h.images.some(hi => hi.data === img.data))
+    const histIndex = histEntry ? histEntry.images.findIndex(hi => hi.data === img.data) : -1
+    if (histEntry && histIndex >= 0 && gallery.items.some(g => g.sourceHistoryId === histEntry.id && g.sourceHistoryImageIndex === histIndex)) {
+      alert('该图片已在画廊中')
+      return
+    }
     await gallery.save({
       adapterId: profile.adapterId,
       mode: 'image-to-image',
@@ -61,8 +67,10 @@ async function onSave(img: GenResultImage, _index: number) {
       params: params.value,
       image: img,
       apiConfig: { endpoint: profile.config.endpoint, model: profile.config.model },
+      sourceHistoryId: histEntry?.id,
+      sourceHistoryImageIndex: histIndex >= 0 ? histIndex : undefined,
     })
-    alert('已保存到画廊！')
+    alert('已添加到画廊！')
     emit('saved')
   } catch (e) {
     console.error('保存失败:', e)

@@ -10,6 +10,8 @@ export interface PersistedHistoryEntry {
   images: { data: Blob; mimeType: string }[]
   raw?: unknown
   createdAt: number
+  adapterId?: string
+  apiConfig?: { endpoint: string; model: string }
 }
 
 export async function saveHistoryEntry(entry: PersistedHistoryEntry): Promise<void> {

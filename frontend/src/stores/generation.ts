@@ -13,6 +13,8 @@ export interface HistoryEntry {
   images: GenResultImage[]
   raw?: unknown
   createdAt: number
+  adapterId?: string
+  apiConfig?: { endpoint: string; model: string }
 }
 
 export const useGenerationStore = defineStore('generation', () => {
@@ -30,10 +32,12 @@ export const useGenerationStore = defineStore('generation', () => {
       images: entry.images.map(img => ({ data: img.data, mimeType: img.mimeType })),
       raw: entry.raw === undefined ? undefined : toRaw(entry.raw),
       createdAt: entry.createdAt,
+      adapterId: entry.adapterId,
+      apiConfig: entry.apiConfig,
     }
   }
 
-  function toPersistedEntry(mode: HistoryEntry['mode'], prompt: string, result: GenResult): PersistedHistoryEntry {
+  function toPersistedEntry(mode: HistoryEntry['mode'], prompt: string, result: GenResult, source: { adapterId?: string; apiConfig?: { endpoint: string; model: string } }): PersistedHistoryEntry {
     const rawResult = toRaw(result)
     return toPersistedFromHistoryEntry({
       id: randomUUID(),
@@ -42,6 +46,8 @@ export const useGenerationStore = defineStore('generation', () => {
       images: rawResult.images,
       raw: rawResult.raw,
       createdAt: Date.now(),
+      adapterId: source.adapterId,
+      apiConfig: source.apiConfig,
     })
   }
 
@@ -56,6 +62,8 @@ export const useGenerationStore = defineStore('generation', () => {
       }),
       raw: entry.raw,
       createdAt: entry.createdAt,
+      adapterId: entry.adapterId,
+      apiConfig: entry.apiConfig,
     }
   }
 
@@ -69,7 +77,12 @@ export const useGenerationStore = defineStore('generation', () => {
   }
 
   async function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
-    const entry = toPersistedEntry(mode, prompt, result)
+    const settings = useSettingsStore()
+    const profile = settings.activeProfile
+    const entry = toPersistedEntry(mode, prompt, result, {
+      adapterId: profile?.adapterId,
+      apiConfig: profile ? { endpoint: profile.config.endpoint, model: profile.config.model } : undefined,
+    })
     try {
       await saveHistoryEntry(entry)
       history.value.unshift(toHistoryEntry(entry))

@@ -10,7 +10,7 @@
     <div v-if="!gallery.loaded" class="text-center py-20 text-slate-400 dark:text-slate-600">加载中...</div>
     <div v-else-if="gallery.items.length === 0" class="text-center py-20 text-slate-400 dark:text-slate-600">
       <p>还没有保存的图片</p>
-      <p class="text-sm mt-1">在生成页面点击"保存"即可收藏</p>
+      <p class="text-sm mt-1">在生成页面或历史记录中点击"添加到画廊"即可收藏</p>
     </div>
     <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
       <div v-for="item in gallery.items" :key="item.id"

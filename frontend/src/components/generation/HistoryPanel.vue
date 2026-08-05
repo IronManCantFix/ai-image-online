@@ -85,6 +85,11 @@
               </button>
               <!-- 下载按钮 -->
               <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex justify-end p-2 gap-1">
+                <button v-if="!isInGallery(entry, i)" @click.stop="addToGallery(entry, img, i)"
+                  class="text-white text-xs px-3 py-1.5 rounded-lg bg-primary-500/30 hover:bg-primary-500/50 backdrop-blur cursor-pointer">
+                  添加到画廊
+                </button>
+                <span v-else class="text-white/70 text-xs px-3 py-1.5">已收藏</span>
                 <button @click.stop="download(img, i)"
                   class="text-white text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur cursor-pointer">
                   下载
@@ -99,16 +104,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGenerationStore } from '@/stores/generation'
+import { useGalleryStore } from '@/stores/gallery'
+import { useSettingsStore } from '@/stores/settings'
 import type { GenResultImage } from '@/adapters/types'
+import type { HistoryEntry } from '@/stores/generation'
 
 const genStore = useGenerationStore()
+const gallery = useGalleryStore()
+const settings = useSettingsStore()
 const { history } = storeToRefs(genStore)
 const { removeHistory, removeImageFromHistory, removeImagesFromHistory, clearHistory } = genStore
 
 defineEmits<{ (e: 'preview', img: GenResultImage): void }>()
+
+onMounted(() => { gallery.load() })
 
 const batchMode = ref(false)
 const selected = ref(new Map<string, Set<number>>())
@@ -160,5 +172,30 @@ function download(img: GenResultImage, index: number) {
   a.download = `ai-image-${Date.now()}-${index + 1}.png`
   a.click()
   URL.revokeObjectURL(url)
+}
+
+function isInGallery(entry: HistoryEntry, index: number): boolean {
+  return gallery.items.some(g => g.sourceHistoryId === entry.id && g.sourceHistoryImageIndex === index)
+}
+
+async function addToGallery(entry: HistoryEntry, img: GenResultImage, index: number) {
+  try {
+    const profile = settings.activeProfile
+    const apiConfig = entry.apiConfig ?? (profile ? { endpoint: profile.config.endpoint, model: profile.config.model } : { endpoint: '', model: '' })
+    const adapterId = entry.adapterId ?? profile?.adapterId ?? 'gpt-image-2'
+    await gallery.save({
+      adapterId,
+      mode: entry.mode,
+      prompt: entry.prompt,
+      params: {},
+      image: img,
+      apiConfig,
+      sourceHistoryId: entry.id,
+      sourceHistoryImageIndex: index,
+    })
+    alert('已添加到画廊！')
+  } catch (e) {
+    alert('添加到画廊失败: ' + (e instanceof Error ? e.message : String(e)))
+  }
 }
 </script>

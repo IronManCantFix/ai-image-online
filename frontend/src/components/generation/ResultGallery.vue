@@ -15,7 +15,7 @@
           <img :src="img.url" :alt="`生成结果 ${i + 1}`" class="w-full h-auto cursor-pointer" @click="$emit('preview', img)" />
           <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex justify-end p-2 gap-1">
             <button @click.stop="download(img, i)" class="text-white text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur cursor-pointer">下载</button>
-            <button @click.stop="$emit('save', img, i)" class="text-white text-xs px-3 py-1.5 rounded-lg bg-primary-500/30 hover:bg-primary-500/50 backdrop-blur cursor-pointer ml-1">保存</button>
+            <button @click.stop="$emit('save', img, i)" class="text-white text-xs px-3 py-1.5 rounded-lg bg-primary-500/30 hover:bg-primary-500/50 backdrop-blur cursor-pointer ml-1">添加到画廊</button>
           </div>
         </div>
       </div>

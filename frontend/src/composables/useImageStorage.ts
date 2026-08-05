@@ -10,6 +10,8 @@ export interface GalleryItem {
   mimeType: string
   createdAt: number
   apiConfig: { endpoint: string; model: string }
+  sourceHistoryId?: string
+  sourceHistoryImageIndex?: number
 }
 
 export async function saveToGallery(item: GalleryItem): Promise<void> {

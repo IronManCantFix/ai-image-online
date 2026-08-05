@@ -11,6 +11,8 @@ interface SavePayload {
   params: Record<string, unknown>
   image: GenResultImage
   apiConfig: { endpoint: string; model: string }
+  sourceHistoryId?: string
+  sourceHistoryImageIndex?: number
 }
 
 export const useGalleryStore = defineStore('gallery', () => {
@@ -23,16 +25,19 @@ export const useGalleryStore = defineStore('gallery', () => {
   }
 
   async function save(payload: SavePayload) {
+    const rawPayload = toRaw(payload)
     const item: GalleryItem = {
       id: randomUUID(),
-      adapterId: payload.adapterId,
-      mode: payload.mode,
-      prompt: payload.prompt,
-      params: payload.params,
-      imageData: payload.image.data,
-      mimeType: payload.image.mimeType,
+      adapterId: rawPayload.adapterId,
+      mode: rawPayload.mode,
+      prompt: rawPayload.prompt,
+      params: rawPayload.params,
+      imageData: rawPayload.image.data,
+      mimeType: rawPayload.image.mimeType,
       createdAt: Date.now(),
-      apiConfig: payload.apiConfig,
+      apiConfig: toRaw(rawPayload.apiConfig),
+      sourceHistoryId: rawPayload.sourceHistoryId,
+      sourceHistoryImageIndex: rawPayload.sourceHistoryImageIndex,
     }
     const rawItem = { ...toRaw(item), params: JSON.parse(JSON.stringify(toRaw(item.params))) }
     await saveToGallery(rawItem)
