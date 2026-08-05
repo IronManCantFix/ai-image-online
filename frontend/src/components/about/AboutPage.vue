@@ -51,7 +51,7 @@
           </div>
           <div>
             <span class="text-slate-400 dark:text-slate-600">开发模型</span>
-            <p class="text-slate-600 dark:text-slate-300 mt-0.5 break-all">DeepSeek-v4-flash-0731 Mim-2.5-pro</p>
+            <p class="text-slate-600 dark:text-slate-300 mt-0.5 break-all">DeepSeek-v4-flash-0731 Mimo-v2.5-pro</p>
           </div>
         </div>
       </div>
