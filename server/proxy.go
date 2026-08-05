@@ -154,6 +154,40 @@ func handleProxy(w http.ResponseWriter, r *http.Request) {
 	w.Write(respBody)
 }
 
+func handleImageProxy(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		setCORSHeaders(w)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	imageUrl := r.URL.Query().Get("url")
+	if imageUrl == "" {
+		http.Error(w, "missing url parameter", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("[IMAGE-PROXY] %s", imageUrl)
+
+	resp, err := proxyClient.Get(imageUrl)
+	if err != nil {
+		log.Printf("[IMAGE-PROXY ERROR] %s -> %s", imageUrl, err.Error())
+		http.Error(w, fmt.Sprintf("fetch failed: %s", err.Error()), http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+
+	setCORSHeaders(w)
+	ct := resp.Header.Get("Content-Type")
+	if ct == "" {
+		ct = "image/png"
+	}
+	w.Header().Set("Content-Type", ct)
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	w.WriteHeader(resp.StatusCode)
+	io.Copy(w, resp.Body)
+}
+
 func setCORSHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")

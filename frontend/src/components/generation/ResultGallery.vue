@@ -4,12 +4,13 @@
       <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 dark:border-slate-700 border-t-primary-500 mb-3"></div>
       <p class="text-slate-400 dark:text-slate-600 text-sm">生成中，请稍候...</p>
     </div>
-    <div v-else-if="error" class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl p-4">
+    <div v-else-if="error && !results" class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl p-4">
       <p class="text-red-700 dark:text-red-300 text-sm font-medium">生成失败</p>
       <p class="text-red-600 dark:text-red-400/80 text-sm mt-1 break-all">{{ error }}</p>
     </div>
-    <div v-else-if="results && results.images.length">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div v-else-if="results">
+      <!-- 图片展示 -->
+      <div v-if="results.images.length" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div v-for="(img, i) in results.images" :key="i" class="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
           <img :src="img.url" :alt="`生成结果 ${i + 1}`" class="w-full h-auto cursor-pointer" @click="$emit('preview', img)" />
           <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex justify-end p-2 gap-1">
@@ -18,6 +19,12 @@
           </div>
         </div>
       </div>
+      <!-- 无图片但有原始数据 -->
+      <div v-else class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl p-4 mb-3">
+        <p class="text-amber-700 dark:text-amber-300 text-sm font-medium">API 返回了响应，但未能解析出图片</p>
+        <p class="text-amber-600 dark:text-amber-400/80 text-xs mt-1">请查看下方原始响应数据，可能返回格式暂不支持</p>
+      </div>
+      <!-- 原始响应数据 -->
       <div class="mt-4 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
         <button @click="showRaw = !showRaw" class="w-full flex items-center justify-between px-4 py-2 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer min-h-[44px] transition-colors">
           <div class="flex items-center gap-2">
@@ -43,6 +50,9 @@ import type { GenResult, GenResultImage } from '@/adapters/types'
 const props = defineProps<{ loading: boolean; error: string | null; results: GenResult | null }>()
 defineEmits<{ (e: 'preview', img: GenResultImage): void; (e: 'save', img: GenResultImage, index: number): void }>()
 const showRaw = ref(false)
-const formattedRaw = computed(() => { try { return JSON.stringify(props.results?.raw, null, 2) } catch { return String(props.results?.raw) } })
+// Auto-expand raw when there are no images
+const formattedRaw = computed(() => {
+  try { return JSON.stringify(props.results?.raw, null, 2) } catch { return String(props.results?.raw) }
+})
 function download(img: GenResultImage, index: number) { const url = URL.createObjectURL(img.data); const a = document.createElement('a'); a.href = url; a.download = `ai-image-${Date.now()}-${index + 1}.png`; a.click(); URL.revokeObjectURL(url) }
 </script>

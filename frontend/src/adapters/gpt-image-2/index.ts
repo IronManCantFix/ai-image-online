@@ -2,22 +2,52 @@ import type { ImageAdapter, GenParams, EditParams, GenResult, GenResultImage } f
 import { gptImage2Schema } from './schema'
 import { useProxy } from '@/composables/useProxy'
 
-async function parseImageFromResponse(body: string): Promise<{ images: GenResultImage[]; raw: unknown }> {
-  const data = JSON.parse(body)
+async function fetchImageViaProxy(imageUrl: string): Promise<Blob> {
+  const resp = await fetch('/api/image-proxy?url=' + encodeURIComponent(imageUrl))
+  if (!resp.ok) throw new Error(`图片下载失败 (${resp.status})`)
+  return await resp.blob()
+}
+
+async function parseImageFromResponse(
+  body: string,
+): Promise<{ images: GenResultImage[]; raw: unknown }> {
+  let data: unknown
+  try {
+    data = JSON.parse(body)
+  } catch {
+    // Response is not JSON, wrap it as raw
+    return { images: [], raw: { _raw_text: body } }
+  }
+
+  const obj = data as Record<string, unknown>
   const images: GenResultImage[] = []
-  for (const item of data.data || []) {
-    if (item.b64_json) {
-      const byteString = atob(item.b64_json)
-      const bytes = new Uint8Array(byteString.length)
-      for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i)
-      const blob = new Blob([bytes], { type: 'image/png' })
-      images.push({ data: blob, mimeType: 'image/png', url: URL.createObjectURL(blob) })
-    } else if (item.url) {
-      const resp = await fetch(item.url)
-      const blob = await resp.blob()
-      images.push({ data: blob, mimeType: blob.type, url: URL.createObjectURL(blob) })
+  const items = (obj.data || obj.images || obj.results || []) as Record<string, unknown>[]
+
+  for (const item of items) {
+    try {
+      if (item.b64_json) {
+        const byteString = atob(item.b64_json as string)
+        const bytes = new Uint8Array(byteString.length)
+        for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i)
+        const blob = new Blob([bytes], { type: 'image/png' })
+        images.push({ data: blob, mimeType: 'image/png', url: URL.createObjectURL(blob) })
+      } else if (item.url) {
+        // Fetch through image proxy to avoid CORS
+        const blob = await fetchImageViaProxy(item.url as string)
+        images.push({ data: blob, mimeType: blob.type || 'image/png', url: URL.createObjectURL(blob) })
+      } else if (item.b64 || item.base64) {
+        const b64 = (item.b64 || item.base64) as string
+        const byteString = atob(b64)
+        const bytes = new Uint8Array(byteString.length)
+        for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i)
+        const blob = new Blob([bytes], { type: 'image/png' })
+        images.push({ data: blob, mimeType: 'image/png', url: URL.createObjectURL(blob) })
+      }
+    } catch (e) {
+      console.warn('[ImageAdapter] Failed to parse image item:', e, item)
     }
   }
+
   return { images, raw: data }
 }
 

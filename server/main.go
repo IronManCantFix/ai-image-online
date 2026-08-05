@@ -18,6 +18,7 @@ func main() {
 	mux.HandleFunc("/api/proxy", handleProxy)
 	mux.HandleFunc("/api/proxy/config", handleProxyConfig)
 	mux.HandleFunc("/api/health", handleHealth)
+	mux.HandleFunc("/api/image-proxy", handleImageProxy)
 
 	staticDir := "./static"
 	if _, err := os.Stat(staticDir); os.IsNotExist(err) {

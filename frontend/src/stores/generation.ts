@@ -75,7 +75,7 @@ export const useGenerationStore = defineStore('generation', () => {
     loading.value = true; error.value = null; textResults.value = null
     try {
       textResults.value = await adapter.textToImage({ prompt, config: profile.config, params })
-      await pushHistory('text-to-image', prompt, textResults.value)
+      if (textResults.value.images.length > 0) await pushHistory('text-to-image', prompt, textResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
     } finally { loading.value = false }
@@ -90,7 +90,7 @@ export const useGenerationStore = defineStore('generation', () => {
     loading.value = true; error.value = null; imageResults.value = null
     try {
       imageResults.value = await adapter.imageToImage({ prompt, config: profile.config, params, images })
-      await pushHistory('image-to-image', prompt, imageResults.value)
+      if (imageResults.value.images.length > 0) await pushHistory('image-to-image', prompt, imageResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
     } finally { loading.value = false }
