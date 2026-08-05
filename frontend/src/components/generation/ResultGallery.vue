@@ -54,5 +54,13 @@ const showRaw = ref(false)
 const formattedRaw = computed(() => {
   try { return JSON.stringify(props.results?.raw, null, 2) } catch { return String(props.results?.raw) }
 })
-function download(img: GenResultImage, index: number) { const url = URL.createObjectURL(img.data); const a = document.createElement('a'); a.href = url; a.download = `ai-image-${Date.now()}-${index + 1}.png`; a.click(); URL.revokeObjectURL(url) }
+async function download(img: GenResultImage, index: number) {
+  await img.ready
+  const url = URL.createObjectURL(img.data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `ai-image-${Date.now()}-${index + 1}.png`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 </script>

@@ -46,6 +46,7 @@ function onPreview(img: GenResultImage) { emit('preview', img) }
 
 async function onSave(img: GenResultImage, _index: number) {
   try {
+    await img.ready
     const profile = settings.activeProfile
     if (!profile || !profile.config.apiKey) {
       alert('请先配置 API Key')

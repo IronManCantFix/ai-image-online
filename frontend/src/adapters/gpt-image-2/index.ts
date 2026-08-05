@@ -13,17 +13,16 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
 }
 
 async function fetchImageBlob(imageUrl: string): Promise<Blob | null> {
-  // 1. Try direct fetch with 5s timeout (works if server supports CORS)
+  // 直连与代理并行，谁先成功用谁：
+  // - 图片服务器支持 CORS 时直连更快
+  // - 被 CORS 拦截时 Promise.any 立即采用代理结果，不再串行等待超时
+  const direct = fetchWithTimeout(imageUrl, 5000).then(async (resp) => (resp.ok ? await resp.blob() : null))
+  const proxied = fetch('/api/image-proxy?url=' + encodeURIComponent(imageUrl)).then(async (resp) => (resp.ok ? await resp.blob() : null))
   try {
-    const resp = await fetchWithTimeout(imageUrl, 5000)
-    if (resp.ok) return await resp.blob()
-  } catch { /* timeout or CORS blocked */ }
-  // 2. Fallback: fetch via server proxy
-  try {
-    const resp = await fetch('/api/image-proxy?url=' + encodeURIComponent(imageUrl))
-    if (resp.ok) return await resp.blob()
-  } catch { /* proxy also failed */ }
-  return null
+    return await Promise.any([direct, proxied])
+  } catch {
+    return null
+  }
 }
 
 function b64ToBlob(b64: string): Blob {
@@ -60,22 +59,26 @@ async function parseImageFromResponse(
     }
   }
 
-  // Resolve all images in parallel
-  const results = await Promise.allSettled(entries.map(async ({ val, isUrl }): Promise<GenResultImage> => {
+  // URL 直接放进 <img> 展示（图片标签不受 CORS 限制，能立即开始加载），
+  // 同时后台补拉 Blob 供历史记录/下载/画廊使用，不阻塞展示
+  const images: GenResultImage[] = entries.map(({ val, isUrl }) => {
     if (isUrl) {
-      const blob = await fetchImageBlob(val)
-      if (blob) return { data: blob, mimeType: blob.type || 'image/png', url: URL.createObjectURL(blob) }
-      return { data: new Blob([], { type: 'image/png' }), mimeType: 'image/png', url: val }
+      const image: GenResultImage = {
+        data: new Blob([], { type: 'image/png' }),
+        mimeType: 'image/png',
+        url: val,
+      }
+      image.ready = fetchImageBlob(val).then((blob) => {
+        if (blob) {
+          image.data = blob
+          image.mimeType = blob.type || image.mimeType
+        }
+      })
+      return image
     }
     const blob = b64ToBlob(val)
     return { data: blob, mimeType: 'image/png', url: URL.createObjectURL(blob) }
-  }))
-
-  const images: GenResultImage[] = []
-  for (const r of results) {
-    if (r.status === 'fulfilled') images.push(r.value)
-    else console.warn('[ImageAdapter] Failed to resolve image:', r.reason)
-  }
+  })
 
   return { images, raw: data }
 }

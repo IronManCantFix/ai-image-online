@@ -37,6 +37,8 @@ export interface GenResultImage {
   data: Blob
   mimeType: string
   url: string
+  /** 生成结果为 URL 时，后台补拉 Blob 的完成信号（从历史记录加载的图片没有该字段） */
+  ready?: Promise<void>
 }
 
 export interface GenResult {

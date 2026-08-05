@@ -77,6 +77,8 @@ export const useGenerationStore = defineStore('generation', () => {
   }
 
   async function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
+    // 等待所有图片的 Blob 就绪后再写入 IndexedDB，避免存入空数据
+    await Promise.allSettled(result.images.map(img => img.ready))
     const settings = useSettingsStore()
     const profile = settings.activeProfile
     const entry = toPersistedEntry(mode, prompt, result, {
@@ -101,6 +103,7 @@ export const useGenerationStore = defineStore('generation', () => {
     loading.value = true; error.value = null; textResults.value = null
     try {
       textResults.value = await adapter.textToImage({ prompt, config: profile.config, params })
+      loading.value = false
       if (textResults.value.images.length > 0) await pushHistory('text-to-image', prompt, textResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
@@ -116,6 +119,7 @@ export const useGenerationStore = defineStore('generation', () => {
     loading.value = true; error.value = null; imageResults.value = null
     try {
       imageResults.value = await adapter.imageToImage({ prompt, config: profile.config, params, images })
+      loading.value = false
       if (imageResults.value.images.length > 0) await pushHistory('image-to-image', prompt, imageResults.value)
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
