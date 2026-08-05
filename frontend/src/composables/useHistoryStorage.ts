@@ -26,11 +26,16 @@ export async function getAllHistory(): Promise<PersistedHistoryEntry[]> {
   // Clean up expired entries
   if (valid.length < all.length) {
     const expired = all.filter((item) => item.createdAt <= cutoff)
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    for (const item of expired) {
-      tx.store.delete(item.id)
+    try {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      for (const item of expired) {
+        tx.store.delete(item.id)
+      }
+      await tx.done
+    } catch (e) {
+      // Cleanup failure must not break history loading
+      console.error('[History] Failed to clean up expired entries:', e)
     }
-    await tx.done
   }
   return valid.sort((a, b) => b.createdAt - a.createdAt)
 }

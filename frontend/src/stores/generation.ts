@@ -22,15 +22,26 @@ export const useGenerationStore = defineStore('generation', () => {
   const imageResults = ref<GenResult | null>(null)
   const history = ref<HistoryEntry[]>([])
 
-  function toPersistedEntry(mode: HistoryEntry['mode'], prompt: string, result: GenResult): PersistedHistoryEntry {
+  function toPersistedFromHistoryEntry(entry: HistoryEntry): PersistedHistoryEntry {
     return {
+      id: entry.id,
+      mode: entry.mode,
+      prompt: entry.prompt,
+      images: entry.images.map(img => ({ data: img.data, mimeType: img.mimeType })),
+      raw: entry.raw,
+      createdAt: entry.createdAt,
+    }
+  }
+
+  function toPersistedEntry(mode: HistoryEntry['mode'], prompt: string, result: GenResult): PersistedHistoryEntry {
+    return toPersistedFromHistoryEntry({
       id: randomUUID(),
       mode,
       prompt,
-      images: result.images.map(img => ({ data: img.data, mimeType: img.mimeType })),
+      images: result.images,
       raw: result.raw,
       createdAt: Date.now(),
-    }
+    })
   }
 
   function toHistoryEntry(entry: PersistedHistoryEntry): HistoryEntry {
@@ -58,11 +69,12 @@ export const useGenerationStore = defineStore('generation', () => {
 
   async function pushHistory(mode: HistoryEntry['mode'], prompt: string, result: GenResult) {
     const entry = toPersistedEntry(mode, prompt, result)
-    history.value.unshift(toHistoryEntry(entry))
     try {
       await saveHistoryEntry(entry)
+      history.value.unshift(toHistoryEntry(entry))
     } catch (e) {
       console.error('[History] Failed to save history entry to IndexedDB:', e)
+      error.value = '历史记录保存失败（浏览器本地存储不可用或已满），本次结果刷新后将丢失，请尽快下载图片。'
     }
   }
 
@@ -108,23 +120,44 @@ export const useGenerationStore = defineStore('generation', () => {
     await deleteHistoryEntry(id)
   }
 
-  function removeImageFromHistory(entryId: string, imageIndex: number) {
+  async function removeImageFromHistory(entryId: string, imageIndex: number) {
     const entry = history.value.find(h => h.id === entryId)
     if (!entry) return
     entry.images.splice(imageIndex, 1)
     if (entry.images.length === 0) {
       history.value = history.value.filter(h => h.id !== entryId)
+      try {
+        await deleteHistoryEntry(entryId)
+      } catch (e) {
+        console.error('[History] Failed to persist image removal:', e)
+      }
+    } else {
+      try {
+        await saveHistoryEntry(toPersistedFromHistoryEntry(entry))
+      } catch (e) {
+        console.error('[History] Failed to persist image removal:', e)
+      }
     }
   }
 
-  function removeImagesFromHistory(selected: Map<string, Set<number>>) {
+  async function removeImagesFromHistory(selected: Map<string, Set<number>>) {
+    const toDelete: string[] = []
+    const toUpdate: HistoryEntry[] = []
     for (const [entryId, indices] of selected.entries()) {
       const entry = history.value.find(h => h.id === entryId)
       if (!entry) continue
       const sorted = [...indices].sort((a, b) => b - a)
       for (const i of sorted) entry.images.splice(i, 1)
+      if (entry.images.length === 0) toDelete.push(entryId)
+      else toUpdate.push(entry)
     }
     history.value = history.value.filter(h => h.images.length > 0)
+    try {
+      for (const id of toDelete) await deleteHistoryEntry(id)
+      for (const entry of toUpdate) await saveHistoryEntry(toPersistedFromHistoryEntry(entry))
+    } catch (e) {
+      console.error('[History] Failed to persist image removal:', e)
+    }
   }
 
   async function clearHistory() { history.value = []; await clearHistoryDB() }
