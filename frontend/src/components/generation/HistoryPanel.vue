@@ -1,5 +1,8 @@
 <template>
   <div>
+    <div class="mb-4 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
+      <p class="text-xs text-blue-600 dark:text-blue-400">历史记录自动保存在浏览器中，保留 7 天。如需永久保存，请下载图片到本地。</p>
+    </div>
     <div v-if="history.length === 0" class="flex items-center justify-center py-20 text-slate-300 dark:text-slate-700 text-sm">
       <p>暂无生成历史</p>
     </div>

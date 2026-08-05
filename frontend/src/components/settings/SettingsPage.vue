@@ -31,6 +31,9 @@
       </div>
     </div>
 
+    <div class="mb-4 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
+      <p class="text-xs text-blue-600 dark:text-blue-400">所有配置和数据均保存在浏览器本地，清空浏览器缓存将导致数据丢失。</p>
+    </div>
     <div v-if="activeProfile" class="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300">编辑：{{ activeProfile.name }}</h3>
       <div>

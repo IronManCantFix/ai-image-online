@@ -1,7 +1,7 @@
 import { openDB, type IDBPDatabase } from 'idb'
 
 const DB_NAME = 'ai-image-online'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 let dbPromise: Promise<IDBPDatabase> | null = null
 

@@ -4,6 +4,9 @@
       <h1 class="text-xl font-bold text-slate-900 dark:text-slate-100">画廊</h1>
       <button v-if="gallery.items.length" @click="confirmClear" class="px-3 py-2 text-sm rounded-xl border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 min-h-[40px] cursor-pointer transition-colors">清空全部</button>
     </div>
+    <div class="mb-4 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
+      <p class="text-xs text-blue-600 dark:text-blue-400">画廊数据保存在浏览器本地，清空浏览器缓存将导致数据丢失，建议及时下载保存。</p>
+    </div>
     <div v-if="!gallery.loaded" class="text-center py-20 text-slate-400 dark:text-slate-600">加载中...</div>
     <div v-else-if="gallery.items.length === 0" class="text-center py-20 text-slate-400 dark:text-slate-600">
       <p>还没有保存的图片</p>
