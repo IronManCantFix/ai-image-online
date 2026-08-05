@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, toRaw } from 'vue'
 import { randomUUID } from '@/utils/uuid'
 import type { GenResult, GenResultImage } from '@/adapters/types'
 import { getAdapter } from '@/adapters/registry'
@@ -28,18 +28,19 @@ export const useGenerationStore = defineStore('generation', () => {
       mode: entry.mode,
       prompt: entry.prompt,
       images: entry.images.map(img => ({ data: img.data, mimeType: img.mimeType })),
-      raw: entry.raw,
+      raw: entry.raw === undefined ? undefined : toRaw(entry.raw),
       createdAt: entry.createdAt,
     }
   }
 
   function toPersistedEntry(mode: HistoryEntry['mode'], prompt: string, result: GenResult): PersistedHistoryEntry {
+    const rawResult = toRaw(result)
     return toPersistedFromHistoryEntry({
       id: randomUUID(),
       mode,
       prompt,
-      images: result.images,
-      raw: result.raw,
+      images: rawResult.images,
+      raw: rawResult.raw,
       createdAt: Date.now(),
     })
   }
