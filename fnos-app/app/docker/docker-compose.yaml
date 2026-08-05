@@ -1,6 +1,6 @@
 services:
   ai-image-online:
-    image: ghcr.io/ironmancantfix/ai-image-online:main
+    image: ghcr.io/ironmancantfix/ai-image-online:latest
     container_name: ai-image-online
     ports:
       - "19090:8080"
